@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - PlayPal</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+<!-- Navigation -->
+<nav class="navbar">
+    <div class="nav-container">
+        <div class="nav-logo">
+            <i class="fas fa-futbol"></i>
+            <span>PlayPal</span>
+        </div>
+        <div class="nav-menu" id="nav-menu">
+            <a th:href="@{/}" class="nav-link active">Home</a>
+            <a th:href="@{/venues}" class="nav-link">Book</a>
+            <a th:href="@{/games}" class="nav-link">Games</a>
+            <a th:href="@{/about}" class="nav-link">About</a>
+            <a th:href="@{/contact}" class="nav-link">Contact</a>
+            <!-- start: replace this block inside your nav -->
+            <div class="nav-auth" id="nav-auth">
+                <!-- when authenticated show profile + logout -->
+                <div th:if="${authenticated}" class="mydiv">
+                    <a th:href="@{/profile}" class="nav-link">
+                        <img th:src="${currentUser.profilePictureUrl != null} ? ${currentUser.profilePictureUrl} : @{/images/default-avatar.jpeg}"
+                             alt="Profile" class="nav-avatar">
+                        <!--                        <span th:text="${currentUser.username}">User</span>-->
+                    </a>
+                    <form th:action="@{/logout}" method="post" style="display:inline-block">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <button type="submit" class="nav-link logout-btn">
+                            Logout
+                        </button>
+                    </form>
+
+                </div>
+
+                <!-- when not authenticated show login/signup -->
+                <div th:unless="${authenticated}">
+                    <a th:href="@{/login}" class="nav-link login-btn">Login</a>
+                    <a th:href="@{/signup}" class="signup-link signup-btn active">Sign Up</a>
+                </div>
+            </div>
+            <!-- end: replace -->
+
+        </div>
+        <div class="nav-hamburger" id="nav-hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+</nav>
+
+<!-- Page Header -->
+<section class="page-header">
+    <div class="container">
+        <h1>Contact Us</h1>
+        <p>Get in touch with our team</p>
+    </div>
+</section>
+
+<!-- Contact Content -->
+<section class="contact-section">
+    <div class="container">
+        <div class="contact-grid">
+            <div class="contact-info">
+                <h2>Get in Touch</h2>
+                <p>Have questions or need help? We're here to assist you with all your sports venue and game needs.</p>
+
+                <div class="contact-details">
+                    <div class="contact-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div>
+                            <h4>Address</h4>
+                            <p>123 Sports Street, City Center<br>Mumbai, Maharashtra 400001</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-phone"></i>
+                        <div>
+                            <h4>Phone</h4>
+                            <p>+91 98765 43210</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-envelope"></i>
+                        <div>
+                            <h4>Email</h4>
+                            <p>support@playpal.com</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-clock"></i>
+                        <div>
+                            <h4>Hours</h4>
+                            <p>Mon - Fri: 9:00 AM - 8:00 PM<br>Sat - Sun: 10:00 AM - 6:00 PM</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="contact-form-container">
+                <form id="contact-form" class="contact-form">
+                    <div class="form-group">
+                        <label for="contact-name">Name</label>
+                        <input type="text" id="contact-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contact-email">Email</label>
+                        <input type="email" id="contact-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contact-subject">Subject</label>
+                        <input type="text" id="contact-subject" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contact-message">Message</label>
+                        <textarea id="contact-message" rows="5" required></textarea>
+                    </div>
+                    <button type="submit" class="submit-btn">
+                        <span class="btn-text">Send Message</span>
+                        <span class="btn-loader" style="display: none;">
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+    <div class="container">
+        <div class="footer-content">
+            <div class="footer-logo">
+                <i class="fas fa-futbol"></i>
+                <span>PlayPal</span>
+            </div>
+            <p>&copy; 2025 PlayPal. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
+
+<!-- JS -->
+<script th:src="@{/js/api.js}"></script>
+<script th:src="@{/js/script.js}"></script>
+<script th:src="@{/js/contact.js}"></script>
+</body>
+</html>

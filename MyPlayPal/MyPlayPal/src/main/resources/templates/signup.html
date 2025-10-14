@@ -1,0 +1,169 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <title>Sign up</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        /* Container for form + image */
+        .signup-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 60vh;
+            gap: 50px; /* space between form and image */
+            padding: 2%;
+        }
+
+        /* Form styling */
+        .signup-form {
+            flex: 1;
+            max-width: 400px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background-color: #f9f9f9;
+        }
+
+        /* Image styling */
+        .signup-image {
+            flex: 1;
+            max-width: 500px;
+        }
+
+        .signup-image img {
+            width: 80%;
+            height: auto;
+            border-radius: 10px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+    </style>
+</head>
+<body>
+<!-- Navigation -->
+<nav class="navbar">
+    <div class="nav-container">
+        <div class="nav-logo">
+            <i class="fas fa-futbol"></i>
+            <span>PlayPal</span>
+        </div>
+        <div class="nav-menu" id="nav-menu">
+            <a th:href="@{/}" class="nav-link active">Home</a>
+            <a th:href="@{/venues}" class="nav-link">Book</a>
+            <a th:href="@{/games}" class="nav-link">Games</a>
+            <a th:href="@{/about}" class="nav-link">About</a>
+            <a th:href="@{/contact}" class="nav-link">Contact</a>
+            <div class="nav-auth" id="nav-auth">
+                <a th:href="@{/login}" class="nav-link login-btn">Login</a>
+                <a th:href="@{/signup}" class="nav-link signup-btn">Sign Up</a>
+            </div>
+        </div>
+        <div class="nav-hamburger" id="nav-hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+</nav>
+
+<h2 style="text-align:center; margin-top:20px;">Join PlayPal</h2>
+
+
+<div class="signup-container">
+    <!-- Signup Form -->
+    <form th:action="@{/signup}" th:object="${createUserRequest}" method="post" class="signup-form">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+        <label>Username
+            <input type="text" th:field="*{username}" required />
+        </label>
+
+        <label>Email
+            <input type="email" th:field="*{email}" required />
+        </label>
+
+        <label>Password
+            <input type="password" th:field="*{password}" required />
+        </label>
+
+        <label>Age
+            <input type="number" th:field="*{age}" />
+        </label>
+
+        <label>Gender
+            <select th:field="*{gender}">
+                <option value="" selected>-- Select Gender --</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+            </select>
+        </label>
+
+        <label>Contact
+            <input type="tel" th:field="*{contact}" />
+        </label>
+
+        <label>City
+            <input type="text" th:field="*{city}" />
+        </label>
+
+        <label>State
+            <input type="text" th:field="*{state}" />
+        </label>
+
+        <button type="submit">Sign Up</button>
+        <p th:if="${error}" th:text="${error}"></p>
+    </form>
+
+    <!-- Image on the right -->
+    <div class="signup-image">
+        <img th:src="@{/images/basketball.jpg}" alt="Signup Image">
+    </div>
+</div>
+
+<!-- Footer -->
+<footer class="footer">
+    <div class="container">
+        <div class="footer-content">
+            <div class="footer-logo">
+                <i class="fas fa-futbol"></i>
+                <span>PlayPal</span>
+            </div>
+            <p>&copy; 2025 PlayPal. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loading-overlay">
+    <div class="loading-spinner"></div>
+</div>
+</body>
+</html>
+
+

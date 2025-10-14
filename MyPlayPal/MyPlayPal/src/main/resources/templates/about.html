@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - PlayPal</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+<!-- Navigation -->
+<nav class="navbar">
+    <div class="nav-container">
+        <div class="nav-logo">
+            <i class="fas fa-futbol"></i>
+            <span>PlayPal</span>
+        </div>
+        <div class="nav-menu" id="nav-menu">
+            <a th:href="@{/}" class="nav-link active">Home</a>
+            <a th:href="@{/venues}" class="nav-link">Book</a>
+            <a th:href="@{/games}" class="nav-link">Games</a>
+            <a th:href="@{/about}" class="nav-link">About</a>
+            <a th:href="@{/contact}" class="nav-link">Contact</a>
+            <!-- start: replace this block inside your nav -->
+            <div class="nav-auth" id="nav-auth">
+                <!-- when authenticated show profile + logout -->
+                <div th:if="${authenticated}" class="mydiv">
+                    <a th:href="@{/profile}" class="nav-link">
+                        <img th:src="${currentUser.profilePictureUrl != null} ? ${currentUser.profilePictureUrl} : @{/images/default-avatar.jpeg}"
+                             alt="Profile" class="nav-avatar">
+                        <!--                        <span th:text="${currentUser.username}">User</span>-->
+                    </a>
+                    <form th:action="@{/logout}" method="post" style="display:inline-block">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <button type="submit" class="nav-link logout-btn">
+                            Logout
+                        </button>
+                    </form>
+
+                </div>
+
+                <!-- when not authenticated show login/signup -->
+                <div th:unless="${authenticated}">
+                    <a th:href="@{/login}" class="nav-link login-btn">Login</a>
+                    <a th:href="@{/signup}" class="signup-link signup-btn active">Sign Up</a>
+                </div>
+            </div>
+            <!-- end: replace -->
+
+        </div>
+        <div class="nav-hamburger" id="nav-hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+</nav>
+
+<!-- Page Header -->
+<section class="page-header">
+    <div class="container">
+        <h1>About PlayPal</h1>
+        <p>Connecting sports enthusiasts worldwide</p>
+    </div>
+</section>
+
+<!-- About Content -->
+<section class="about-content">
+    <div class="container">
+        <div class="about-grid">
+            <div class="about-text">
+                <h2>Our Mission</h2>
+                <p>At PlayPal, we believe that sports bring people together and create lasting friendships. Our mission is to make it easier for sports enthusiasts to find venues, connect with players, and organize games in their community.</p>
+
+                <h3>What We Offer</h3>
+                <ul>
+                    <li><strong>Venue Booking:</strong> Access to premium sports facilities</li>
+                    <li><strong>Player Connection:</strong> Find teammates and opponents</li>
+                    <li><strong>Game Organization:</strong> Easy tools to create and manage games</li>
+                    <li><strong>Community Building:</strong> Connect with local sports communities</li>
+                </ul>
+
+                <h3>Our Values</h3>
+                <p>We are committed to promoting healthy lifestyles, building communities, and making sports accessible to everyone. Our platform is designed with fairness, transparency, and user experience at its core.</p>
+            </div>
+            <div class="about-image">
+                <img th:src="@{/images/about-team.jpg}" alt="Team sports">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="stats-section">
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">10K+</div>
+                <div class="stat-label">Active Users</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">500+</div>
+                <div class="stat-label">Partner Venues</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">50K+</div>
+                <div class="stat-label">Games Organized</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">25+</div>
+                <div class="stat-label">Cities</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+    <div class="container">
+        <div class="footer-content">
+            <div class="footer-logo">
+                <i class="fas fa-futbol"></i>
+                <span>PlayPal</span>
+            </div>
+            <p>&copy; 2025 PlayPal. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
+
+<!-- JS -->
+<script th:src="@{/js/api.js}"></script>
+<script th:src="@{/js/script.js}"></script>
+</body>
+</html>
