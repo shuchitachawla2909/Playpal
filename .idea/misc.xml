@@ -5,6 +5,7 @@
     <option name="originalFiles">
       <list>
         <option value="$PROJECT_DIR$/dbms/pom.xml" />
+        <option value="$PROJECT_DIR$/MyPlayPal/MyPlayPal/pom.xml" />
       </list>
     </option>
   </component>
