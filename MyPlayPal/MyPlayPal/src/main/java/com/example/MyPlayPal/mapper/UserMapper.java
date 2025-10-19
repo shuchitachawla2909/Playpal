@@ -1,8 +1,8 @@
 package com.example.MyPlayPal.mapper;
 
-import com.example.MyPlayPal.dto.CreateUserRequest;
 import com.example.MyPlayPal.dto.UpdateUserRequest;
 import com.example.MyPlayPal.dto.UserDto;
+import com.example.MyPlayPal.dto.UserSignupRequest;
 import com.example.MyPlayPal.model.User;
 
 public class UserMapper {
@@ -23,7 +23,7 @@ public class UserMapper {
                 .build();
     }
 
-    public static User fromCreateRequest(CreateUserRequest req, String hashedPassword) {
+    public static User fromCreateRequest(UserSignupRequest req, String hashedPassword) {
         User u = new User();
         u.setUsername(req.getUsername());
         u.setEmail(req.getEmail());

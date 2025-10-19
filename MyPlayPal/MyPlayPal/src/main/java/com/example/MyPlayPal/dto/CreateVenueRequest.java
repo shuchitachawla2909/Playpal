@@ -37,4 +37,3 @@ public class CreateVenueRequest {
 
     private String venueImageUrl;
 }
-

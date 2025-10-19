@@ -1,7 +1,7 @@
 package com.example.MyPlayPal.controller;
 
-import com.example.MyPlayPal.dto.CreateManagerRequest;
 import com.example.MyPlayPal.dto.ManagerDto;
+import com.example.MyPlayPal.dto.ManagerSignupRequest;
 import com.example.MyPlayPal.service.ManagerService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +27,7 @@ public class ManagerController {
     }
 
     @PostMapping
-    public ResponseEntity<ManagerDto> createManager(@Valid @RequestBody CreateManagerRequest request) {
+    public ResponseEntity<ManagerDto> createManager(@Valid @RequestBody ManagerSignupRequest request) {
         return ResponseEntity.ok(managerService.createManager(request));
     }
 

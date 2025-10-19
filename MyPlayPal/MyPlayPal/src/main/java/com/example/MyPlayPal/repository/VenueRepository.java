@@ -11,4 +11,3 @@ public interface VenueRepository extends JpaRepository<Venue, Long> {
     List<Venue> findByCity(String city);
     List<Venue> findByManagerId(Long managerId);
 }
-

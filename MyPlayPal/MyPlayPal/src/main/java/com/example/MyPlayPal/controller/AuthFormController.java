@@ -1,51 +1,90 @@
 package com.example.MyPlayPal.controller;
 
-import com.example.MyPlayPal.dto.CreateUserRequest;
+import com.example.MyPlayPal.dto.ManagerSignupRequest;
+import com.example.MyPlayPal.dto.UserSignupRequest;
+import com.example.MyPlayPal.repository.ManagerRepository;
 import com.example.MyPlayPal.repository.UserRepository;
+import com.example.MyPlayPal.service.ManagerService;
 import com.example.MyPlayPal.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-
 @Controller
 public class AuthFormController {
 
     private final UserService userService;
+    private final ManagerService managerService;
     private final UserRepository userRepo;
+    private final ManagerRepository managerRepo;
 
     @Autowired
-    public AuthFormController(UserService userService, UserRepository userRepo) {
+    public AuthFormController(UserService userService,
+                              ManagerService managerService,
+                              UserRepository userRepo,
+                              ManagerRepository managerRepo) {
         this.userService = userService;
+        this.managerService = managerService;
         this.userRepo = userRepo;
+        this.managerRepo = managerRepo;
     }
 
+    // ---------- GET: signup page ----------
     @GetMapping("/signup")
     public String signupPage(Model model) {
-        model.addAttribute("createUserRequest", new CreateUserRequest());
+        model.addAttribute("userSignupRequest", new UserSignupRequest());
+        model.addAttribute("managerSignupRequest", new ManagerSignupRequest());
         return "signup";
     }
 
+    // ---------- POST: signup ----------
     @PostMapping("/signup")
-    public String signupSubmit(@ModelAttribute("createUserRequest") CreateUserRequest request,
+    public String signupSubmit(@RequestParam("role") String role,
+                               @ModelAttribute("userSignupRequest") UserSignupRequest userReq,
+                               @ModelAttribute("managerSignupRequest") ManagerSignupRequest managerReq,
                                Model model) {
-        // uniqueness checks (optional)
-        if (userRepo.findByUsername(request.getUsername()).isPresent()) {
-            model.addAttribute("error", "Username already exists");
-            return "signup";
-        }
-        if (userRepo.findByEmail(request.getEmail()).isPresent()) {
-            model.addAttribute("error", "Email already exists");
-            return "signup";
-        }
 
-        userService.createUser(request); // service should encode password & save
-        return "redirect:/login";
+        try {
+            if ("USER".equalsIgnoreCase(role)) {
+                // Check uniqueness in user table
+                if (userRepo.findByUsername(userReq.getUsername()).isPresent()) {
+                    model.addAttribute("error", "Username already exists for user");
+                    return "signup";
+                }
+                if (userRepo.findByEmail(userReq.getEmail()).isPresent()) {
+                    model.addAttribute("error", "Email already exists for user");
+                    return "signup";
+                }
+
+                userService.createUser(userReq);
+                return "redirect:/login";
+
+            } else if ("MANAGER".equalsIgnoreCase(role)) {
+                // Check uniqueness in manager table
+                if (managerRepo.findByManagername(managerReq.getManagername()).isPresent()) {
+                    model.addAttribute("error", "Manager name already exists");
+                    return "signup";
+                }
+                if (managerRepo.findByEmail(managerReq.getEmail()).isPresent()) {
+                    model.addAttribute("error", "Email already exists for manager");
+                    return "signup";
+                }
+
+                managerService.createManager(managerReq);
+                return "redirect:/login";
+
+            } else {
+                model.addAttribute("error", "Invalid role selection");
+                return "signup";
+            }
+        } catch (Exception e) {
+            model.addAttribute("error", "Signup failed: " + e.getMessage());
+            return "signup";
+        }
     }
 
     // ---------- GET: login page ----------
-    // Spring Security will handle POST /login automatically if configured with formLogin()
     @GetMapping("/login")
     public String loginPage(@RequestParam(value = "error", required = false) String error,
                             @RequestParam(value = "logout", required = false) String logout,
@@ -59,4 +98,5 @@ public class AuthFormController {
         return "login";
     }
 }
+
 

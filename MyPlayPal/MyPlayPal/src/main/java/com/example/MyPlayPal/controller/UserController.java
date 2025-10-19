@@ -1,8 +1,8 @@
 package com.example.MyPlayPal.controller;
 
-import com.example.MyPlayPal.dto.CreateUserRequest;
 import com.example.MyPlayPal.dto.UpdateUserRequest;
 import com.example.MyPlayPal.dto.UserDto;
+import com.example.MyPlayPal.dto.UserSignupRequest;
 import com.example.MyPlayPal.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +34,7 @@ public class UserController {
 
     // 3️⃣ Create a new user
     @PostMapping
-    public ResponseEntity<UserDto> createUser(@Valid @RequestBody CreateUserRequest request) {
+    public ResponseEntity<UserDto> createUser(@Valid @RequestBody UserSignupRequest request) {
         UserDto createdUser = userService.createUser(request);
         return ResponseEntity.ok(createdUser);
     }

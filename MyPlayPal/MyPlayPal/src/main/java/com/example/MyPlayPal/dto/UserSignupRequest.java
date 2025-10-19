@@ -2,6 +2,7 @@ package com.example.MyPlayPal.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -33,4 +34,7 @@ public class UserSignupRequest {
     private Integer age;
 
     private String gender;
+
+    @Size(max = 500, message = "profilePictureUrl too long")
+    private String profilePictureUrl;
 }

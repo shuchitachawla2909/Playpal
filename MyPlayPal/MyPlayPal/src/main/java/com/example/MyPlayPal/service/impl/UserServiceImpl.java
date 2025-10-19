@@ -1,8 +1,8 @@
 package com.example.MyPlayPal.service.impl;
 
-import com.example.MyPlayPal.dto.CreateUserRequest;
 import com.example.MyPlayPal.dto.UpdateUserRequest;
 import com.example.MyPlayPal.dto.UserDto;
+import com.example.MyPlayPal.dto.UserSignupRequest;
 import com.example.MyPlayPal.model.User;
 import com.example.MyPlayPal.repository.UserRepository;
 import com.example.MyPlayPal.service.UserService;
@@ -59,7 +59,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto createUser(CreateUserRequest request) {
+    public UserDto createUser(UserSignupRequest request) {
         User user = User.builder()
                 .username(request.getUsername())
                 .email(request.getEmail())

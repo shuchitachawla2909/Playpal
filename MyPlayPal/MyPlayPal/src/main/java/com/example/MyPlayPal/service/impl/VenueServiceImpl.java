@@ -99,4 +99,3 @@ public class VenueServiceImpl implements VenueService {
                 .collect(Collectors.toList());
     }
 }
-

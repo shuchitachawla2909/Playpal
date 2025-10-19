@@ -1,11 +1,12 @@
 package com.example.MyPlayPal.service.impl;
 
-import com.example.MyPlayPal.dto.CreateManagerRequest;
 import com.example.MyPlayPal.dto.ManagerDto;
+import com.example.MyPlayPal.dto.ManagerSignupRequest;
 import com.example.MyPlayPal.exception.ResourceNotFoundException;
 import com.example.MyPlayPal.model.Manager;
 import com.example.MyPlayPal.repository.ManagerRepository;
 import com.example.MyPlayPal.service.ManagerService;
+import jakarta.validation.Valid;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,7 +27,7 @@ public class ManagerServiceImpl implements ManagerService {
 
     @Override
     @Transactional
-    public ManagerDto createManager(CreateManagerRequest req) {
+    public ManagerDto createManager(@Valid ManagerSignupRequest req) {
         Manager m = Manager.builder()
                 .managername(req.getManagername())
                 .contact(req.getContact())
