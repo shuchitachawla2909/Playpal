@@ -29,10 +29,10 @@ public class ManagerServiceImpl implements ManagerService {
     @Transactional
     public ManagerDto createManager(@Valid ManagerSignupRequest req) {
         Manager m = Manager.builder()
-                .managername(req.getManagername())
-                .contact(req.getContact())
-                .email(req.getEmail())
-                .password(passwordEncoder.encode(req.getPassword()))
+                .managername(req.getManagername().trim())
+                .contact(req.getContact().trim())
+                .email(req.getEmail().trim())
+                .password(passwordEncoder.encode(req.getPassword().trim()))
                 .build();
         Manager saved = repo.save(m);
         return ManagerDto.builder().id(saved.getId()).managername(saved.getManagername())
