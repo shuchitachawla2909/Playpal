@@ -24,16 +24,16 @@ public class SportServiceImpl implements SportService {
     @Override
     @Transactional
     public SportDto createSport(CreateSportRequest req) {
-        Sport s = Sport.builder().sportname(req.getSportname()).build();
+        Sport s = Sport.builder().sportName(req.getSportName()).build();
         Sport saved = sportRepository.save(s);
-        return SportDto.builder().id(saved.getId()).sportname(saved.getSportname()).build();
+        return SportDto.builder().id(saved.getId()).sportName(saved.getSportName()).build();
     }
 
     @Override
     @Transactional(readOnly = true)
     public SportDto getById(Long id) {
         Sport s = sportRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Sport not found"));
-        return SportDto.builder().id(s.getId()).sportname(s.getSportname()).build();
+        return SportDto.builder().id(s.getId()).sportName(s.getSportName()).build();
     }
 
     @Override
@@ -42,11 +42,13 @@ public class SportServiceImpl implements SportService {
         return sportRepository.findAll().stream()
                 .map(s -> SportDto.builder()
                         .id(s.getId())
-                        .sportname(s.getSportname())
+                        .sportName(s.getSportName())
                         .sportImageUrl(s.getSportImageUrl()) // new
                         .build())
                 .collect(Collectors.toList());
     }
 
 }
+
+
 

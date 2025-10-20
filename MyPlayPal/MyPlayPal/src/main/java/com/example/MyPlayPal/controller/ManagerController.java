@@ -1,7 +1,7 @@
 package com.example.MyPlayPal.controller;
 
 import com.example.MyPlayPal.dto.ManagerDto;
-import com.example.MyPlayPal.dto.ManagerSignupRequest;
+import com.example.MyPlayPal.dto.ManagerSignupRequest; // Standardized DTO
 import com.example.MyPlayPal.service.ManagerService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,16 +27,13 @@ public class ManagerController {
     }
 
     @PostMapping
+    // ✅ FIX: Changed expected request type from CreateManagerRequest to ManagerSignupRequest.
     public ResponseEntity<ManagerDto> createManager(@Valid @RequestBody ManagerSignupRequest request) {
         return ResponseEntity.ok(managerService.createManager(request));
     }
 
-    // No update defined earlier; if you have an UpdateManagerRequest you can add a PUT here.
-
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteManager(@PathVariable Long id) {
-        // if you add delete to service, call it; otherwise simply return not-implemented
-        // managerService.deleteManager(id);
         return ResponseEntity.ok("Delete manager endpoint not implemented on service");
     }
 }

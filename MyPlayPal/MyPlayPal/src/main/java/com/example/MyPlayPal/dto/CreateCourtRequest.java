@@ -16,9 +16,9 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateCourtRequest {
-    @NotBlank(message = "courtname is required")
+    @NotBlank(message = "courtName is required")
     @Size(max = 150)
-    private String courtname;
+    private String courtName;
 
     @NotNull(message = "venueId is required")
     private Long venueId;
@@ -33,3 +33,4 @@ public class CreateCourtRequest {
     // optional; defaults to true in service if null
     private Boolean isBookable;
 }
+

@@ -36,7 +36,7 @@ public class CourtServiceImpl implements CourtService {
         Sport sport = sportRepository.findById(req.getSportId()).orElseThrow(() -> new ResourceNotFoundException("Sport not found"));
 
         Court c = Court.builder()
-                .courtname(req.getCourtname())
+                .courtName(req.getCourtName())
                 .venue(venue)
                 .sport(sport)
                 .hourlyRate(req.getHourlyRate())
@@ -46,7 +46,7 @@ public class CourtServiceImpl implements CourtService {
         Court saved = courtRepository.save(c);
         return CourtDto.builder()
                 .id(saved.getId())
-                .courtname(saved.getCourtname())
+                .courtName(saved.getCourtName())
                 .venueId(venue.getId())
                 .sportId(sport.getId())
                 .hourlyRate(saved.getHourlyRate())
@@ -60,7 +60,7 @@ public class CourtServiceImpl implements CourtService {
         Court c = courtRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Court not found"));
         return CourtDto.builder()
                 .id(c.getId())
-                .courtname(c.getCourtname())
+                .courtName(c.getCourtName())
                 .venueId(c.getVenue() == null ? null : c.getVenue().getId())
                 .sportId(c.getSport() == null ? null : c.getSport().getId())
                 .hourlyRate(c.getHourlyRate())
@@ -74,7 +74,7 @@ public class CourtServiceImpl implements CourtService {
         return courtRepository.findByVenueId(venueId).stream()
                 .map(c -> CourtDto.builder()
                         .id(c.getId())
-                        .courtname(c.getCourtname())
+                        .courtName(c.getCourtName())
                         .venueId(c.getVenue() == null ? null : c.getVenue().getId())
                         .sportId(c.getSport() == null ? null : c.getSport().getId())
                         .hourlyRate(c.getHourlyRate())

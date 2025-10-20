@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ManagerDto {
     private Long id;
-    private String managername;
+    private String name;
     private String contact;
     private String email;
 }

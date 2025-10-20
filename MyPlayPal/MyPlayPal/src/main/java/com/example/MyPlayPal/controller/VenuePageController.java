@@ -1,53 +1,74 @@
 package com.example.MyPlayPal.controller;
 
-import com.example.MyPlayPal.dto.ReviewDto;
 import com.example.MyPlayPal.dto.VenueDto;
-import com.example.MyPlayPal.service.ReviewService; // <-- Import
+import com.example.MyPlayPal.dto.CourtDto; // Assuming you have a Court DTO
 import com.example.MyPlayPal.service.VenueService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-
 import java.util.List;
 
 @Controller
 public class VenuePageController {
 
     private final VenueService venueService;
-    private final ReviewService reviewService; // <-- NEW Field
 
-    // UPDATE CONSTRUCTOR: Inject both services
-    public VenuePageController(VenueService venueService, ReviewService reviewService) {
+    public VenuePageController(VenueService venueService) {
         this.venueService = venueService;
-        this.reviewService = reviewService; // <-- Initialize
     }
 
     @GetMapping("/venues")
     public String getVenuesPage(Model model) {
         List<VenueDto> venues = venueService.listAllVenues();
-        // NOTE: If you want to show average rating on the list page, you'd need to loop and enrich here.
         model.addAttribute("venues", venues);
         return "venues";
     }
 
-    @GetMapping("/venue/{id}") // Best practice to use descriptive path
-    public String venueDetails(@PathVariable Long id, Model model) {
-        // 1. Get base venue details
-        VenueDto venueDetail = venueService.getById(id);
+    /**
+     * ✅ FIX 1: Corrected mapping to handle /venues/{id}
+     * This solves the "No static resource" error.
+     */
+    @GetMapping("/venues/{id}")
+    public String venueDetails(@PathVariable("id") Long venueId, Model model) {
+        // Renamed variable to venueId for clarity
+        VenueDto venueDetail = venueService.getById(venueId);
 
-        // 2. Fetch and calculate review data
-        List<ReviewDto> reviews = reviewService.listByVenue(id);
-        Double averageRating = reviewService.getAverageRating(id);
+        if (venueDetail == null) {
+            return "redirect:/venues"; // Redirect if venue not found
+        }
 
-        // 3. ENRICH the VenueDto object (or add separately to the model)
-        venueDetail.setReviews(reviews);
-        venueDetail.setAverageRating(averageRating);
-
-        // 4. Add the enriched DTO to the model
         model.addAttribute("venue", venueDetail);
-
-        // Ensure this matches your template file name
         return "venue-detail";
+    }
+
+    /**
+     * ✅ FIX 2: Added mapping for the new booking page URL structure.
+     * Maps to: /venues/{venueId}/book/{courtId}
+     */
+    @GetMapping("/venues/{venueId}/book/{courtId}")
+    public String showBookingPage(
+            @PathVariable Long venueId,
+            @PathVariable Long courtId,
+            Model model
+    ) {
+        // 1. Fetch Venue details
+        VenueDto venue = venueService.getById(venueId);
+
+        // 2. Fetch Court details (Assuming a method to get a specific court/sport)
+        CourtDto court = venueService.getCourtById(courtId);
+
+        if (venue == null || court == null) {
+            // Handle error: redirect back if resources are missing
+            return "redirect:/venues";
+        }
+
+        model.addAttribute("venue", venue);
+        model.addAttribute("court", court);
+
+        // You would typically fetch available slots/prices here too.
+
+        return "booking"; // Renders booking.html
     }
 }

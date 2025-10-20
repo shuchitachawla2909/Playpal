@@ -3,6 +3,7 @@ package com.example.MyPlayPal.service.impl;
 import com.example.MyPlayPal.dto.UpdateUserRequest;
 import com.example.MyPlayPal.dto.UserDto;
 import com.example.MyPlayPal.dto.UserSignupRequest;
+import com.example.MyPlayPal.exception.ResourceNotFoundException; // Added for robust error handling
 import com.example.MyPlayPal.model.User;
 import com.example.MyPlayPal.repository.UserRepository;
 import com.example.MyPlayPal.service.UserService;
@@ -54,16 +55,31 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto getUserById(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
         return mapToDto(user);
     }
+
+    /**
+     * Required implementation to securely resolve the user ID from the Principal's username.
+     * This resolves the "Cannot resolve method 'getUserIdByUsername'" error.
+     */
+    @Override
+    public Long getUserIdByUsername(String username) {
+        // Find the user by username and map to their ID.
+        // Assumes UserRepository has findByUsername(String) defined.
+        return userRepository.findByUsername(username)
+                .map(User::getId)
+                // Throw a custom exception if the authenticated user cannot be found,
+                // which prevents potential NullPointerExceptions in the controller.
+                .orElseThrow(() -> new ResourceNotFoundException("Authenticated user ID not found for username: " + username));
+    }
+
 
     @Override
     public UserDto createUser(UserSignupRequest request) {
         User user = User.builder()
                 .username(request.getUsername())
                 .email(request.getEmail())
-                // encode the password here (exactly once)
                 .password(passwordEncoder.encode(request.getPassword()))
                 .contact(request.getContact())
                 .city(request.getCity())
@@ -81,11 +97,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto updateUser(Long id, UpdateUserRequest request) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
 
         if (request.getUsername() != null) user.setUsername(request.getUsername());
         if (request.getEmail() != null) user.setEmail(request.getEmail());
-        // If client provided a new password, encode it before saving
         if (request.getPassword() != null) user.setPassword(passwordEncoder.encode(request.getPassword()));
         if (request.getContact() != null) user.setContact(request.getContact());
         if (request.getCity() != null) user.setCity(request.getCity());
@@ -101,10 +116,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUser(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
         userRepository.delete(user);
     }
 }
-
-
-

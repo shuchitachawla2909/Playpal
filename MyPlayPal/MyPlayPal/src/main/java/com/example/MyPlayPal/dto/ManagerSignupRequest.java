@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 public class ManagerSignupRequest {
 
     @NotBlank(message = "Manager name is required")
-    private String managername;
+    private String name;
 
     @NotBlank(message = "Password is required")
     private String password;

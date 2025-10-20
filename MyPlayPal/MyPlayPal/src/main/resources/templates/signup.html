@@ -2,67 +2,11 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8"/>
-    <title>Sign up</title>
+    <title>Sign up - PlayPal</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
-    <style>
-        /* Container for form + image */
-        .signup-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 60vh;
-            gap: 50px;
-            padding: 2%;
-        }
-
-        .signup-form {
-            flex: 1;
-            max-width: 400px;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 10px;
-            background-color: #f9f9f9;
-        }
-
-        .signup-image {
-            flex: 1;
-            max-width: 500px;
-        }
-
-        .signup-image img {
-            width: 80%;
-            height: auto;
-            border-radius: 10px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 10px;
-        }
-
-        input, select, button {
-            width: 100%;
-            padding: 8px;
-            margin-top: 5px;
-            margin-bottom: 15px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
-
-        button {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-    </style>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-<!-- Navigation -->
 <nav class="navbar">
     <div class="nav-container">
         <div class="nav-logo">
@@ -70,14 +14,14 @@
             <span>PlayPal</span>
         </div>
         <div class="nav-menu" id="nav-menu">
-            <a th:href="@{/}" class="nav-link active">Home</a>
+            <a th:href="@{/}" class="nav-link">Home</a>
             <a th:href="@{/venues}" class="nav-link">Book</a>
             <a th:href="@{/games}" class="nav-link">Games</a>
             <a th:href="@{/about}" class="nav-link">About</a>
             <a th:href="@{/contact}" class="nav-link">Contact</a>
             <div class="nav-auth" id="nav-auth">
                 <a th:href="@{/login}" class="nav-link login-btn">Login</a>
-                <a th:href="@{/signup}" class="nav-link signup-btn">Sign Up</a>
+                <a th:href="@{/signup}" class="nav-link signup-btn active">Sign Up</a>
             </div>
         </div>
         <div class="nav-hamburger" id="nav-hamburger">
@@ -88,92 +32,78 @@
     </div>
 </nav>
 
-<h2 style="text-align:center; margin-top:20px;">Join PlayPal</h2>
+<section class="page-header">
+    <div class="container">
+        <h1>Join PlayPal</h1>
+        <p>Connect, play, and book venues with ease</p>
+    </div>
+</section>
 
-<div class="signup-container">
-    <!-- Signup Form -->
-    <form id="signupForm" th:action="@{/signup}" method="post" class="signup-form">
-        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+<div class="auth-section">
+    <div class="container auth-container">
 
-        <!-- Role Dropdown -->
-        <label>Register As
-            <select id="roleSelect" name="role" required>
-                <option value="" selected>-- Select Role --</option>
-                <option value="USER">User</option>
-                <option value="MANAGER">Manager</option>
-            </select>
-        </label>
+        <form th:action="@{/signup}" th:object="${userSignupRequest}" method="post" class="auth-form signup-form">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 
-        <!-- USER Fields -->
-        <div id="userFields" th:object="${userSignupRequest}" style="display:none;">
-            <label>Username
-                <input type="text" th:field="*{username}" />
-            </label>
+            <input type="hidden" name="role" value="USER" />
 
-            <label>Email
-                <input type="email" th:field="*{email}" />
-            </label>
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" th:field="*{username}" placeholder="Choose a username" required />
+            </div>
 
-            <label>Password
-                <input type="password" th:field="*{password}" />
-            </label>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" th:field="*{email}" placeholder="Enter your email" required />
+            </div>
 
-            <label>Age
-                <input type="number" th:field="*{age}" />
-            </label>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" th:field="*{password}" placeholder="Choose a secure password" required />
+            </div>
 
-            <label>Gender
-                <select th:field="*{gender}">
+            <div class="form-group">
+                <label for="age">Age</label>
+                <input type="number" id="age" th:field="*{age}" placeholder="Your age" />
+            </div>
+
+            <div class="form-group">
+                <label for="gender">Gender</label>
+                <select id="gender" th:field="*{gender}">
                     <option value="" selected>-- Select Gender --</option>
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
                     <option value="Other">Other</option>
                 </select>
-            </label>
+            </div>
 
-            <label>Contact
-                <input type="tel" th:field="*{contact}" />
-            </label>
+            <div class="form-group">
+                <label for="contact">Contact</label>
+                <input type="tel" id="contact" th:field="*{contact}" placeholder="Your contact number" />
+            </div>
 
-            <label>City
-                <input type="text" th:field="*{city}" />
-            </label>
+            <div class="form-group-inline">
+                <div class="form-group">
+                    <label for="city">City</label>
+                    <input type="text" id="city" th:field="*{city}" placeholder="Your city" />
+                </div>
+                <div class="form-group">
+                    <label for="state">State</label>
+                    <input type="text" id="state" th:field="*{state}" placeholder="Your state" />
+                </div>
+            </div>
 
-            <label>State
-                <input type="text" th:field="*{state}" />
-            </label>
+            <button type="submit" class="cta-btn">Sign Up</button>
+            <p th:if="${error}" th:text="${error}" class="error-message"></p>
+            <p class="auth-switch">Already have an account? <a th:href="@{/login}">Log In</a></p>
+        </form>
+
+        <div class="auth-image">
+            <img th:src="@{/images/basketball.jpg}" alt="Signup Image">
         </div>
-
-        <!-- MANAGER Fields -->
-        <div id="managerFields" th:object="${managerSignupRequest}" style="display:none;">
-            <label>Manager Name
-                <input type="text" th:field="*{managername}" />
-            </label>
-
-            <label>Email
-                <input type="email" th:field="*{email}" />
-            </label>
-
-            <label>Password
-                <input type="password" th:field="*{password}" />
-            </label>
-
-            <label>Contact
-                <input type="tel" th:field="*{contact}" />
-            </label>
-        </div>
-
-        <button type="submit">Sign Up</button>
-        <p th:if="${error}" th:text="${error}"></p>
-    </form>
-
-    <!-- Image on the right -->
-    <div class="signup-image">
-        <img th:src="@{/images/basketball.jpg}" alt="Signup Image">
     </div>
 </div>
 
-<!-- Footer -->
 <footer class="footer">
     <div class="container">
         <div class="footer-content">
@@ -186,28 +116,8 @@
     </div>
 </footer>
 
-<!-- JS to toggle fields -->
-<script>
-    const roleSelect = document.getElementById('roleSelect');
-    const userFields = document.getElementById('userFields');
-    const managerFields = document.getElementById('managerFields');
-
-    roleSelect.addEventListener('change', function () {
-        const role = this.value;
-        if (role === 'USER') {
-            userFields.style.display = 'block';
-            managerFields.style.display = 'none';
-        } else if (role === 'MANAGER') {
-            userFields.style.display = 'none';
-            managerFields.style.display = 'block';
-        } else {
-            userFields.style.display = 'none';
-            managerFields.style.display = 'none';
-        }
-    });
-</script>
-
+<div class="loading-overlay" id="loading-overlay">
+    <div class="loading-spinner"></div>
+</div>
 </body>
 </html>
-
-
