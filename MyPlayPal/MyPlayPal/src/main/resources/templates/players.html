@@ -4,20 +4,25 @@
     <meta charset="UTF-8">
     <title>Other Players | PlayPal</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
 
 <!--==================== NAVIGATION ====================-->
 <nav class="navbar">
     <div class="nav-container">
-        <a class="nav-logo" th:href="@{/}"><i class="fas fa-futbol"></i> PlayPal</a>
+        <div class="nav-logo">
+            <i class="fas fa-futbol"></i>
+            <span>PlayPal</span>
+        </div>
         <div class="nav-menu">
             <a class="nav-link active" th:href="@{/players}">Other Players</a>
             <a class="nav-link" th:href="@{/games}">Games</a>
             <a class="nav-link" th:href="@{/venues}">Venues</a>
         </div>
         <div class="nav-auth mydiv">
-            <img th:src="@{/images/avatar.png}" alt="Avatar" class="nav-avatar">
+            <img th:src="${currentUser.profilePictureUrl != null} ? ${currentUser.profilePictureUrl} : @{/images/default-avatar.jpeg}"
+                 alt="Profile" class="nav-avatar">
             <a th:href="@{/logout}" class="logout-btn">Logout</a>
         </div>
     </div>
