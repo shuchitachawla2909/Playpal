@@ -277,7 +277,7 @@ img {
 
 /* Page Header */
 .page-header {
-    background-color: red;
+    background-color: blue;
     color: var(--white);
     text-align: center;
     padding: 80px 20px;
