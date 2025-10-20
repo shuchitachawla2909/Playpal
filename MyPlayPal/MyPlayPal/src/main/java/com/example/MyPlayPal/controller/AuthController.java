@@ -35,10 +35,10 @@ public class AuthController {
         log.info("User signup request: username={}, email={}", request.getUsername(), request.getEmail());
 
         if (userRepo.findByUsername(request.getUsername()).isPresent()) {
-            return ResponseEntity.badRequest().body("Username already exists");
+            return ResponseEntity.badRequest().body("Username already exists for user");
         }
         if (userRepo.findByEmail(request.getEmail()).isPresent()) {
-            return ResponseEntity.badRequest().body("Email already exists");
+            return ResponseEntity.badRequest().body("Email already exists for user");
         }
 
         User user = User.builder()
@@ -63,27 +63,27 @@ public class AuthController {
     // ========================== MANAGER SIGNUP ==========================
     @PostMapping("/signup/manager")
     public ResponseEntity<?> registerManager(@Valid @ModelAttribute ManagerSignupRequest request) {
-        log.info("Manager signup request: managername={}, email={}", request.getManagername(), request.getEmail());
+        log.info("Manager signup request: name={}, email={}", request.getName(), request.getEmail());
 
-        if (managerRepo.findByManagername(request.getManagername()).isPresent()) {
+        if (managerRepo.findByName(request.getName()).isPresent()) {
             return ResponseEntity.badRequest().body("Manager name already exists");
         }
         if (managerRepo.findByEmail(request.getEmail()).isPresent()) {
-            return ResponseEntity.badRequest().body("Email already exists");
+            return ResponseEntity.badRequest().body("Email already exists for manager");
         }
 
         Manager manager = Manager.builder()
-                .managername(request.getManagername())
+                .name(request.getName())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .email(request.getEmail())
                 .contact(request.getContact())
                 .build();
 
         managerRepo.save(manager);
-        log.info("New manager registered: {}", manager.getManagername());
+        log.info("New manager registered: {}", manager.getName());
 
-        String token = jwtUtil.generateToken(manager.getManagername());
-        return ResponseEntity.ok(new AuthResponse(token, "MANAGER", manager.getManagername()));
+        String token = jwtUtil.generateToken(manager.getName());
+        return ResponseEntity.ok(new AuthResponse(token, "MANAGER", manager.getName()));
     }
 
     // ========================== LOGIN (common) ==========================
@@ -103,12 +103,12 @@ public class AuthController {
         }
 
         // ---- Try manager next ----
-        Optional<Manager> managerOpt = managerRepo.findByManagername(request.getUsername());
+        Optional<Manager> managerOpt = managerRepo.findByName(request.getUsername());
         if (managerOpt.isPresent()) {
             Manager manager = managerOpt.get();
             if (passwordEncoder.matches(request.getPassword(), manager.getPassword())) {
-                String token = jwtUtil.generateToken(manager.getManagername());
-                return ResponseEntity.ok(new AuthResponse(token, "MANAGER", manager.getManagername()));
+                String token = jwtUtil.generateToken(manager.getName());
+                return ResponseEntity.ok(new AuthResponse(token, "MANAGER", manager.getName()));
             }
             return ResponseEntity.status(401).body("Invalid credentials for manager");
         }

@@ -21,4 +21,3 @@ public class SportPageController {
         return "games"; // Thymeleaf template name: games.html
     }
 }
-

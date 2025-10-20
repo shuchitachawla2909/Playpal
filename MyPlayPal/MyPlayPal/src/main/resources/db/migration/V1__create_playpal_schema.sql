@@ -1,4 +1,4 @@
--- V1__create_playpal_schema.sql
+-- V1__create_playPal_schema.sql
 
 -- users
 CREATE TABLE users (
@@ -21,7 +21,7 @@ CREATE TABLE users (
 -- managers
 CREATE TABLE managers (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  managername VARCHAR(150),
+  name VARCHAR(150), -- ✅ CORRECT: Matches Manager.java 'name' field
   contact VARCHAR(30) UNIQUE,
   email VARCHAR(200) UNIQUE,
   password VARCHAR(255)
@@ -30,26 +30,28 @@ CREATE TABLE managers (
 -- sports
 CREATE TABLE sports (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  sportname VARCHAR(100) NOT NULL UNIQUE
+  sport_name VARCHAR(100) NOT NULL UNIQUE, -- ✅ CRITICAL FIX: Changed from sportName to sport_name
+  sport_image_url VARCHAR(500)
 ) ENGINE=InnoDB;
 
 -- venues
 CREATE TABLE venues (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  venuename VARCHAR(200) NOT NULL,
+  venue_name VARCHAR(200) NOT NULL, -- ✅ FIX: Changed from venueName to venue_name
   street VARCHAR(255),
   city VARCHAR(100),
   state VARCHAR(100),
-  pincode VARCHAR(20),
+  pin_code VARCHAR(20), -- ✅ FIX: Changed from pinCode to pin_code
   manager_id BIGINT,
-  rating DECIMAL(2,1) DEFAULT 0,
+  rating DOUBLE DEFAULT 0,
+  venue_image_url VARCHAR(500),
   CONSTRAINT fk_venues_manager FOREIGN KEY (manager_id) REFERENCES managers(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
 -- courts
 CREATE TABLE courts (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  courtname VARCHAR(200) NOT NULL,
+  court_name VARCHAR(200) NOT NULL, -- ✅ FIX: Changed from courtName to court_name
   venue_id BIGINT,
   sport_id BIGINT,
   hourly_rate DECIMAL(10,2) DEFAULT 0,
@@ -91,6 +93,7 @@ CREATE TABLE events (
   start_time DATETIME,
   end_time DATETIME,
   max_players INT,
+  current_players INT,
   description TEXT,
   skill_level_required VARCHAR(50),
   entry_fee DECIMAL(10,2) DEFAULT 0,
@@ -129,6 +132,10 @@ CREATE TABLE payment_transactions (
   amount DECIMAL(10,2),
   timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   status VARCHAR(20) DEFAULT 'INITIATED', -- INITIATED | SUCCESS | FAILED | REFUNDED
+
+  -- ⭐ CRITICAL FIX: ADDED MISSING COLUMN
+  reference_id VARCHAR(255),
+
   CONSTRAINT fk_payments_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
   CONSTRAINT fk_payments_booking FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;

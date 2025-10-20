@@ -12,6 +12,8 @@ public interface UserService {
     UserDto createUser(UserSignupRequest request);
     UserDto updateUser(Long id, UpdateUserRequest request);
     void deleteUser(Long id);
-}
 
+    // ⭐ FIX 3A: Added method signature for securely retrieving user ID
+    Long getUserIdByUsername(String username);
+}
 

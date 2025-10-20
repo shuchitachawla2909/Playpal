@@ -12,7 +12,7 @@ import lombok.*;
 public class Sport {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String sportname;
+    private String sportName;
 
     @Column(name = "sport_image_url")
     private String sportImageUrl;

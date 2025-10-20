@@ -62,7 +62,7 @@ public class AuthFormController {
 
             } else if ("MANAGER".equalsIgnoreCase(role)) {
                 // Check uniqueness in manager table
-                if (managerRepo.findByManagername(managerReq.getManagername()).isPresent()) {
+                if (managerRepo.findByName(managerReq.getName()).isPresent()) {
                     model.addAttribute("error", "Manager name already exists");
                     return "signup";
                 }
@@ -98,5 +98,4 @@ public class AuthFormController {
         return "login";
     }
 }
-
 

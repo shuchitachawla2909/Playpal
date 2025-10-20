@@ -6,7 +6,6 @@ import com.example.MyPlayPal.exception.ResourceNotFoundException;
 import com.example.MyPlayPal.model.Manager;
 import com.example.MyPlayPal.repository.ManagerRepository;
 import com.example.MyPlayPal.service.ManagerService;
-import jakarta.validation.Valid;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,15 +26,15 @@ public class ManagerServiceImpl implements ManagerService {
 
     @Override
     @Transactional
-    public ManagerDto createManager(@Valid ManagerSignupRequest req) {
+    public ManagerDto createManager(ManagerSignupRequest req) {
         Manager m = Manager.builder()
-                .managername(req.getManagername().trim())
-                .contact(req.getContact().trim())
-                .email(req.getEmail().trim())
-                .password(passwordEncoder.encode(req.getPassword().trim()))
+                .name(req.getName())
+                .contact(req.getContact())
+                .email(req.getEmail())
+                .password(passwordEncoder.encode(req.getPassword()))
                 .build();
         Manager saved = repo.save(m);
-        return ManagerDto.builder().id(saved.getId()).managername(saved.getManagername())
+        return ManagerDto.builder().id(saved.getId()).name(saved.getName())
                 .contact(saved.getContact()).email(saved.getEmail()).build();
     }
 
@@ -43,7 +42,7 @@ public class ManagerServiceImpl implements ManagerService {
     @Transactional(readOnly = true)
     public ManagerDto getById(Long id) {
         Manager m = repo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Manager not found"));
-        return ManagerDto.builder().id(m.getId()).managername(m.getManagername())
+        return ManagerDto.builder().id(m.getId()).name(m.getName())
                 .contact(m.getContact()).email(m.getEmail()).build();
     }
 
@@ -51,7 +50,7 @@ public class ManagerServiceImpl implements ManagerService {
     @Transactional(readOnly = true)
     public List<ManagerDto> listAll() {
         return repo.findAll().stream()
-                .map(m -> ManagerDto.builder().id(m.getId()).managername(m.getManagername())
+                .map(m -> ManagerDto.builder().id(m.getId()).name(m.getName())
                         .contact(m.getContact()).email(m.getEmail()).build())
                 .collect(Collectors.toList());
     }

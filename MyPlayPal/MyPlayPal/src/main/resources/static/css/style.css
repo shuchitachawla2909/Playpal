@@ -1,4 +1,7 @@
-/* Base Styles & Utilities */
+/*========================================================================
+|   1. BASE STYLES & UTILITIES
+=========================================================================*/
+
 :root {
     --primary-color: #2c3e50; /* Dark Blue */
     --secondary-color: #f39c12; /* Orange */
@@ -54,6 +57,7 @@ img {
     display: block;
 }
 
+/* Common Button Styles (CTA, Auth, Submit) */
 .cta-btn, .auth-btn, .submit-btn, .confirm-btn {
     display: inline-block;
     padding: 12px 25px;
@@ -65,11 +69,58 @@ img {
     cursor: pointer;
     transition: var(--transition);
     text-align: center;
+    margin-top: 20px;
 }
 
 .cta-btn:hover, .auth-btn:hover, .submit-btn:hover, .confirm-btn:hover {
     background-color: #e67e22; /* Slightly darker orange */
 }
+
+/* Common Form Control Styles */
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+/* Loading/Utility Elements */
+.loading-overlay {
+    display: none;
+    position: fixed;
+    z-index: 3000;
+    justify-content: center;
+    align-items: center;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8);
+}
+.loading-spinner {
+    border: 6px solid #f3f3f3;
+    border-top: 6px solid var(--accent-color);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+.btn-loader { display: none; }
+.btn-loader i { color: var(--white); }
+.submit-btn.loading .btn-text,
+.auth-btn.loading .btn-text,
+.confirm-btn.loading .btn-text { display: none; }
+.submit-btn.loading .btn-loader,
+.auth-btn.loading .btn-loader,
+.confirm-btn.loading .btn-loader { display: inline-block; }
+
+/*========================================================================*/
+/* 2. NAVIGATION & HEADER STYLES (Applies to ALL HTML files)             */
+/*========================================================================*/
 
 /* Navigation Bar */
 .navbar {
@@ -80,7 +131,6 @@ img {
     box-shadow: var(--box-shadow);
     padding: 1rem 0;
 }
-
 .nav-container {
     display: flex;
     justify-content: space-between;
@@ -89,7 +139,6 @@ img {
     margin: 0 auto;
     padding: 0 20px;
 }
-
 .nav-logo {
     display: flex;
     align-items: center;
@@ -97,18 +146,15 @@ img {
     font-weight: bold;
     color: var(--primary-color);
 }
-
 .nav-logo i {
     font-size: 2rem;
     color: var(--secondary-color);
     margin-right: 10px;
 }
-
 .nav-menu {
     display: flex;
     align-items: center;
 }
-
 .nav-link {
     color: var(--text-color);
     margin: 0 15px;
@@ -116,7 +162,6 @@ img {
     font-weight: 500;
     font-size: 110%;
 }
-
 .signup-link {
     color: white;
     margin: 0 15px;
@@ -124,17 +169,14 @@ img {
     font-weight: 500;
     font-size: 110%;
 }
-
 .nav-link:hover, .nav-link.active {
     color: var(--accent-color);
 }
-
 .nav-auth {
     display: flex;
     align-items: center;
     margin-left: 20px;
 }
-
 .login-btn {
     border: 2px solid var(--accent-color);
     color: var(--accent-color);
@@ -142,12 +184,10 @@ img {
     border-radius: 50px;
     transition: var(--transition);
 }
-
 .login-btn:hover {
     background-color: var(--accent-color);
     color: var(--white);
 }
-
 .signup-btn {
     background-color: var(--accent-color);
     color: var(--white);
@@ -155,17 +195,14 @@ img {
     border-radius: 50px;
     margin-left: 10px;
 }
-
 .signup-btn:hover {
     background-color: #2980b9;
     color: var(--white);
 }
-
 .nav-hamburger {
     display: none;
     cursor: pointer;
 }
-
 .nav-hamburger span {
     display: block;
     width: 25px;
@@ -175,6 +212,86 @@ img {
     transition: var(--transition);
 }
 
+/* User Avatar & Logout Button */
+.nav-avatar{
+    width:50px;
+    height:50px;
+    border-radius:50%;
+    vertical-align:middle;
+    margin-right:6px;
+    border: 2px solid var(--accent-color);
+    object-fit: cover;
+}
+.mydiv{
+    display: flex;
+    align-items: center;
+     gap: 15px;
+}
+.logout-btn {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    font-size: 1.1rem;
+    cursor: pointer;
+    text-decoration: none;
+    padding: 8px 12px;
+    transition: var(--transition);
+    font-weight: 500;
+}
+.logout-btn:hover {
+    color: var(--accent-color);
+    text-decoration: underline;
+}
+
+/* Page Header */
+.page-header {
+    background-color: var(--primary-color);
+    color: var(--white);
+    text-align: center;
+    padding: 80px 20px;
+}
+.page-header h1 {
+    font-size: 3rem;
+    margin-bottom: 10px;
+    color: var(--white);
+}
+.page-header p {
+    font-size: 1.2rem;
+    opacity: 0.8;
+}
+
+/* Footer */
+.footer {
+    background-color: var(--primary-color);
+    color: var(--white);
+    padding: 40px 0;
+    text-align: center;
+}
+.footer-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.footer-logo {
+    display: flex;
+    align-items: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+.footer-logo i {
+    font-size: 2rem;
+    color: var(--secondary-color);
+    margin-right: 10px;
+}
+.footer p {
+    opacity: 0.8;
+}
+
+/*========================================================================*/
+/* 3. HOME PAGE (index.html)                                             */
+/*========================================================================*/
+
 /* Hero Section */
 .hero {
     display: flex;
@@ -183,57 +300,50 @@ img {
     padding: 60px 20px;
     background-color: var(--light-bg);
 }
-
-.hero-content {
-    max-width: 50%;
-}
-
+.hero-content { max-width: 50%; }
 .hero-content h1 {
     font-size: 3rem;
     color: var(--heading-color);
     margin-bottom: 20px;
 }
-
 .hero-content p {
     font-size: 1.2rem;
     color: var(--text-color);
     margin-bottom: 30px;
 }
-
-.hero-image {
-    max-width: 45%;
-}
+.hero-image { max-width: 45%; }
 
 /* Features Section */
-.features {
-    padding: 80px 0;
-}
-
+.features { padding: 80px 0; }
 .features-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 30px;
     text-align: center;
 }
-
 .feature-card {
     background-color: var(--white);
     padding: 30px;
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
-    transition: var(--transition);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
 }
-
 .feature-card:hover {
-    transform: translateY(-10px);
+    transform: translateY(-10px) scale(1.05);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
 }
-
+.feature-card:active {
+    transform: translateY(-5px) scale(0.98);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
 .feature-card i {
     font-size: 3rem;
     color: var(--secondary-color);
     margin-bottom: 20px;
 }
-
 .feature-card h3 {
     color: var(--heading-color);
     margin-bottom: 10px;
@@ -244,13 +354,11 @@ img {
     background-color: var(--light-bg);
     padding: 80px 0;
 }
-
 .sports-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 30px;
 }
-
 .sport-card {
     background-color: var(--white);
     border-radius: var(--border-radius);
@@ -259,66 +367,37 @@ img {
     text-align: center;
     transition: var(--transition);
 }
-
-.sport-card:hover {
-    transform: translateY(-5px);
-}
-
+.sport-card:hover { transform: translateY(-5px); }
 .sport-card img {
     height: 250px;
     width: 120%;
     object-fit: cover;
 }
-
 .sport-card h4 {
     color: var(--heading-color);
     padding: 15px;
 }
 
-/* Page Header */
-.page-header {
-    background-color: red;
-    color: var(--white);
-    text-align: center;
-    padding: 80px 20px;
-}
+/*========================================================================*/
+/* 4. ABOUT PAGE (about.html)                                            */
+/*========================================================================*/
 
-.page-header h1 {
-    font-size: 3rem;
-    margin-bottom: 10px;
-}
-
-.page-header p {
-    font-size: 1.2rem;
-    opacity: 0.8;
-}
-
-/* About Section */
-.about-content {
-    padding: 80px 0;
-}
-
+.about-content { padding: 80px 0; }
 .about-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 50px;
     align-items: center;
 }
-
 .about-text h2, .about-text h3 {
     color: var(--heading-color);
     margin-bottom: 15px;
 }
-
 .about-text ul {
     list-style-position: inside;
     margin-top: 20px;
 }
-
-.about-text li {
-    margin-bottom: 10px;
-}
-
+.about-text li { margin-bottom: 10px; }
 .about-image img {
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
@@ -329,220 +408,201 @@ img {
     background-color: var(--light-bg);
     padding: 60px 0;
 }
-
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 30px;
     text-align: center;
 }
-
 .stat-card {
     background-color: var(--white);
     padding: 30px;
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
 }
-
 .stat-number {
     font-size: 3rem;
     font-weight: bold;
     color: var(--secondary-color);
     margin-bottom: 5px;
 }
-
 .stat-label {
     font-size: 1rem;
     text-transform: uppercase;
     color: var(--text-color);
 }
 
-/* Games Section */
-.games-section, .venues-section {
-    padding: 80px 0;
-}
+/*========================================================================*/
+/* 5. AUTHENTICATION (login.html, signup.html)                           */
+/*========================================================================*/
 
-.games-grid, .venues-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 30px;
+.auth-section { padding: 80px 0; }
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    max-width: 1000px;
+    margin: 0 auto;
+    gap: 60px;
 }
-
-.game-card, .venue-card {
+.auth-form {
+    flex: 1;
+    max-width: 450px;
+    padding: 40px;
+    border-radius: var(--border-radius);
     background-color: var(--white);
+    box-shadow: var(--box-shadow);
+}
+.auth-form h2 {
+    color: var(--heading-color);
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+.auth-form p {
+    color: var(--text-color);
+    margin-bottom: 30px;
+}
+.auth-image {
+    flex: 1;
+    max-width: 500px;
+    display: block;
+}
+.auth-image img {
+    width: 100%;
+    height: auto;
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
-    padding: 20px;
+}
+.form-group { margin-bottom: 20px; }
+.form-group label {
+    display: block;
+    font-weight: bold;
+    color: var(--heading-color);
+}
+.form-group-inline {
+    display: flex;
+    gap: 20px;
+}
+.form-group-inline .form-group { flex: 1; }
+/* Auth input fields */
+input[type="text"], input[type="email"], input[type="password"], input[type="number"], input[type="tel"], select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+    font-size: 1rem;
     transition: var(--transition);
 }
-
-.game-card:hover, .venue-card:hover {
-    transform: translateY(-5px);
-}
-
-.game-card h4, .venue-card h4 {
-    color: var(--heading-color);
-    margin-bottom: 10px;
-}
-
-.game-card p, .venue-card p {
-    margin-bottom: 5px;
-}
-
-.game-card .join-game-btn, .venue-card .book-venue-btn {
-    display: block;
-    width: 100%;
-    margin-top: 15px;
-}
-
-/* Modal */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 2000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0, 0, 0, 0.4);
-    align-items: center;
-    justify-content: center;
-}
-
-.modal-content {
-    background-color: var(--white);
-    padding: 30px;
-    border-radius: var(--border-radius);
-    max-width: 500px;
-    width: 90%;
-    position: relative;
+.error-message {
+    color: #e74c3c;
+    padding: 10px;
+    border: 1px solid #f5c6cb;
+    background-color: #f8d7da;
+    border-radius: 5px;
+    margin-bottom: 15px;
     text-align: center;
 }
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
+.auth-switch {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 0.9em;
+}
+.auth-btn {
+    width: 100%;
+    margin-top: 10px;
 }
 
-.close {
-    color: #aaa;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-}
+/*========================================================================*/
+/* 6. PROFILE PAGE (profile.html)                                        */
+/*========================================================================*/
 
-.close:hover {
-    color: var(--heading-color);
-}
-
-.join-confirmation p {
-    margin: 20px 0;
-}
-
-.game-details {
-    text-align: left;
-    background-color: var(--light-bg);
-    padding: 15px;
-    border-radius: var(--border-radius);
-}
-
-.modal-buttons {
+.profile-section {
+    padding: 60px 0;
     display: flex;
     justify-content: center;
-    gap: 15px;
+}
+.profile-details-container {
+    max-width: 700px;
+    background-color: var(--white);
+    padding: 40px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    text-align: center;
+}
+.profile-avatar-wrapper { margin-bottom: 20px; }
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid var(--secondary-color);
+}
+.profile-info-grid {
+    text-align: left;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px 30px;
     margin-top: 20px;
 }
-
-.cancel-btn {
-    background-color: #e74c3c;
-    color: var(--white);
-    border: none;
-    padding: 12px 25px;
-    border-radius: 50px;
-    cursor: pointer;
-    transition: var(--transition);
+.profile-info-grid p {
+    margin: 0;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--light-bg);
+    font-size: 1.1rem;
+}
+.profile-info-grid p strong {
+    color: var(--primary-color);
+    display: inline-block;
+    width: auto;
+    margin-right: 10px;
 }
 
-.cancel-btn:hover {
-    background-color: #c0392b;
-}
+/*========================================================================*/
+/* 7. CONTACT PAGE (contact.html)                                        */
+/*========================================================================*/
 
-.success-modal {
-    text-align: center;
-}
-
-.success-icon {
-    font-size: 4rem;
-    color: #27ae60;
-    margin-bottom: 20px;
-}
-
-.success-modal h3 {
-    color: var(--heading-color);
-    margin-bottom: 10px;
-}
-
-/* Contact Section */
-.contact-section {
-    padding: 80px 0;
-}
-
+.contact-section { padding: 80px 0; }
 .contact-grid {
     display: grid;
     grid-template-columns: 1fr 1.2fr;
     gap: 50px;
     align-items: center;
 }
-
 .contact-info {
     background-color: var(--light-bg);
     padding: 40px;
     border-radius: var(--border-radius);
 }
-
 .contact-info h2 {
     color: var(--heading-color);
     margin-bottom: 10px;
 }
-
-.contact-details {
-    margin-top: 30px;
-}
-
+.contact-details { margin-top: 30px; }
 .contact-item {
     display: flex;
     align-items: flex-start;
     margin-bottom: 25px;
 }
-
 .contact-item i {
     font-size: 1.5rem;
     color: var(--secondary-color);
     margin-right: 20px;
     margin-top: 5px;
 }
-
 .contact-form-container {
     padding: 40px;
     background-color: var(--white);
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
 }
-
-.contact-form .form-group {
-    margin-bottom: 20px;
-}
-
+.contact-form .form-group { margin-bottom: 20px; }
 .contact-form label {
     display: block;
     font-weight: bold;
     margin-bottom: 8px;
     color: var(--heading-color);
 }
-
 .contact-form input, .contact-form textarea {
     width: 100%;
     padding: 12px;
@@ -550,420 +610,248 @@ img {
     border-radius: var(--border-radius);
     font-size: 1rem;
 }
+.contact-form textarea { resize: vertical; }
 
-.contact-form textarea {
-    resize: vertical;
-}
+/*========================================================================*/
+/* 8. VENUE LISTING & DETAILS (venues.html, venue-detail.html)           */
+/*========================================================================*/
 
-/* Auth Section (Login & Signup) */
-.auth-section {
-    padding: 80px 0;
-}
+.games-section, .venues-section { padding: 80px 0; }
 
-.auth-container {
+/* Common Card/Grid Layout for Venues and Sports Listing */
+.card-container, .grid-container, .venues-list-grid, .sports-list-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 50px;
-    align-items: center;
-    max-width: 900px;
-    margin: 0 auto;
-    background-color: var(--light-bg);
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 30px;
+    padding: 40px 0;
+}
+.card {
+    background-color: white;
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
     overflow: hidden;
-}
-
-.auth-form {
-    padding: 40px;
-}
-
-.auth-form h2 {
-    color: var(--heading-color);
-    font-size: 2rem;
-    margin-bottom: 10px;
-}
-
-.auth-form p {
+    transition: var(--transition);
+    text-decoration: none;
     color: var(--text-color);
-    margin-bottom: 30px;
+    display: flex;
+    flex-direction: column;
 }
-
-.auth-image {
-    height: 100%;
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.15);
 }
-
-.auth-image img {
-    height: 100%;
+.card img {
     width: 100%;
+    height: 70%;
     object-fit: cover;
 }
-
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group label {
-    display: block;
-    font-weight: bold;
-    margin-bottom: 8px;
-}
-
-.form-group input, .form-group select {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 1rem;
-}
-
-.auth-btn {
-    width: 100%;
-    margin-top: 10px;
-}
-
-.auth-links {
-    text-align: center;
-    margin-top: 20px;
-}
-
-/* Footer */
-.footer {
-    background-color: var(--primary-color);
-    color: var(--white);
-    padding: 40px 0;
-    text-align: center;
-}
-
-.footer-content {
+.card-body {
+    padding: 15px;
+    height: 30%;
     display: flex;
     flex-direction: column;
-    align-items: center;
-}
-
-.footer-logo {
-    display: flex;
-    align-items: center;
-    font-size: 1.5rem;
-    font-weight: bold;
-    margin-bottom: 10px;
-}
-
-.footer-logo i {
-    font-size: 2rem;
-    color: var(--secondary-color);
-    margin-right: 10px;
-}
-
-.footer p {
-    opacity: 0.8;
-}
-
-/* Loading Overlay */
-.loading-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.8);
-    z-index: 3000;
     justify-content: center;
-    align-items: center;
-}
-
-.loading-spinner {
-    border: 6px solid #f3f3f3;
-    border-top: 6px solid var(--accent-color);
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* Button with Loader */
-.btn-loader {
-    display: none;
-}
-
-.btn-loader i {
-    color: var(--white);
-}
-
-.submit-btn.loading .btn-text,
-.auth-btn.loading .btn-text,
-.confirm-btn.loading .btn-text {
-    display: none;
-}
-
-.submit-btn.loading .btn-loader,
-.auth-btn.loading .btn-loader,
-.confirm-btn.loading .btn-loader {
-    display: inline-block;
-}
-
-/* Media Queries */
-@media (max-width: 992px) {
-    .hero-content h1 {
-        font-size: 2.5rem;
-    }
-}
-
-@media (max-width: 768px) {
-    .hero {
-        flex-direction: column-reverse;
-        text-align: center;
-    }
-
-    .hero-content, .hero-image {
-        max-width: 100%;
-    }
-
-    .hero-image {
-        margin-bottom: 30px;
-    }
-
-    .nav-menu {
-        display: none;
-        flex-direction: column;
-        width: 100%;
-        position: absolute;
-        top: 80px;
-        left: 0;
-        background-color: var(--white);
-        box-shadow: var(--box-shadow);
-        padding: 20px 0;
-    }
-
-    .nav-menu.active {
-        display: flex;
-    }
-
-    .nav-link {
-        margin: 10px 0;
-        text-align: center;
-    }
-
-    .nav-auth {
-        flex-direction: column;
-        margin-left: 0;
-        margin-top: 20px;
-        width: 100%;
-    }
-
-    .login-btn, .signup-btn {
-        width: 80%;
-        margin-top: 10px;
-    }
-
-    .nav-hamburger {
-        display: block;
-    }
-
-    .about-grid, .contact-grid, .auth-container {
-        grid-template-columns: 1fr;
-    }
-
-    .auth-image {
-        display: none;
-    }
-}
-
-@media (max-width: 576px) {
-    .section-title {
-        font-size: 2rem;
-    }
-
-    .page-header h1 {
-        font-size: 2.5rem;
-    }
-}
-
-/* Sign Up Form Specific Styles */
-/*body {
-    background-color: var(--light-bg);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    padding: 20px;
-}*/
-
-h2 {
-    color: var(--heading-color);
-    font-size: 2rem;
-    margin-bottom: 20px;
     text-align: center;
+    background: var(--light-bg);
+    flex-grow: 1;
 }
-
-form {
-    /*background-color: var(--white);
-    padding: 40px;*/
-    border-radius: var(--border-radius);
-    /*box-shadow: var(--box-shadow);
-    width: 100%;*/
-    max-width: 500px;
-
-}
-
-label {
-    display: block;
-    font-weight: bold;
-    color: var(--text-color);
-    margin-bottom: 8px;
-}
-
-input[type="text"],
-input[type="email"],
-input[type="password"],
-input[type="number"],
-input[type="tel"],
-select {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    margin-bottom: 20px;
-    font-size: 1rem;
-    transition: var(--transition);
-}
-
-input:focus,
-select:focus {
-    border-color: var(--accent-color);
-    box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
-    outline: none;
-}
-
-button[type="submit"] {
-    display: block;
-    width: 100%;
-    padding: 12px 20px;
-    background-color: var(--accent-color);
-    color: var(--white);
-    border: none;
-    border-radius: 5px;
-    font-size: 1.1rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: var(--transition);
-}
-
-button[type="submit"]:hover {
-    background-color: #2980b9;
-}
-
-p[th:if="${error}"] {
-    color: #e74c3c;
-    text-align: center;
-    margin-top: 20px;
-}
-
-/* Ensure the form fits well on small screens */
-@media (max-width: 576px) {
-    form {
-        padding: 30px;
-    }
-}
-
-.nav-avatar{
-    width:50px;
-    height:50px;
-    border-radius:50%;
-    vertical-align:middle;
-    margin-right:6px;
-    border: 2px solid black;  /* solid black boundary */
-    object-fit: cover;        /* crops the image nicely */
-}
-
-/* Remove default form styling */
-.logout-form {
-    display: inline; /* keeps it inline with other links */
+.card-body h3, .card-body h4 {
     margin: 0;
-    padding: 0;
+    color: var(--heading-color);
 }
 
-/* Style logout button like a link */
-.logout-btn {
-    background: none;
-    border: none;
-    color: #fff;                /* match your navbar link text color */
-    font-size: 16px;            /* match font size */
-    cursor: pointer;
-    text-decoration: none;
-    padding: 8px 12px;
-    transition: color 0.3s ease;
-    width: 50%;
+/* Venue Detail Page */
+.venue-detail-section { padding: 50px 0; }
+.venue-main-image {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+    border-radius: var(--border-radius);
+    margin-bottom: 30px;
+    box-shadow: var(--box-shadow);
 }
-
-/* On hover, match link hover effect */
-.logout-btn:hover {
-    color: #ffcc00;             /* or whatever hover color you use for nav links */
+.venue-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-bottom: 40px;
 }
-
-.mydiv{
-    display: flex;
-    align-items: center;   /* vertical centering */
-     gap: 15px;
-}
-
-/* Profile Section Styles */
-.profile-section {
-    padding: 60px 0;
-    display: flex;
-    justify-content: center;
-}
-
-.profile-section section {
+.venue-info-card {
     background-color: var(--white);
-    padding: 30px;
+    padding: 20px;
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
-    max-width: 400px;
-    width: 100%;
+    border: 1px solid #eee;
+}
+.venue-info-card h2 {
+    color: var(--primary-color);
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+}
+.venue-info-card i {
+    color: var(--secondary-color);
+    margin-right: 8px;
+}
+.section-subtitle {
+    margin-top: 40px;
+    color: var(--heading-color);
+    border-bottom: 2px solid var(--secondary-color);
+    padding-bottom: 10px;
+    font-size: 2rem;
+}
+.courts-grid {
+     padding: 20px 0;
+ } /* Standard grid spacing for courts list */
+
+.court-card {
+    max-height: 350px;
     text-align: center;
 }
+.court-card img { height: 70%; }
 
-.profile-section h2 {
-    color: var(--heading-color);
-    font-size: 1.8rem;
+/*========================================================================*/
+/* 9. BOOKING PAGE (booking.html)                                        */
+/*========================================================================*/
+
+.booking-section { padding: 50px 0; }
+.booking-container {
+    max-width: 800px;
+    margin: auto;
+    background: var(--white);
+    padding: 40px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+.booking-steps {
+    display: flex;
+    justify-content: space-around;
     margin-bottom: 30px;
-    border-bottom: 2px solid var(--light-bg);
-    padding-bottom: 15px;
+    border-bottom: 1px solid var(--light-bg);
+    padding-bottom: 20px;
 }
-
-.profile-section div {
-    margin-bottom: 20px;
-}
-
-.profile-section img {
-    /* Styles applied inline in HTML are preserved, but adding fallbacks */
-    border: 3px solid var(--secondary-color);
-    object-fit: cover;
-    display: inline-block;
-}
-
-.profile-section p {
+.step {
     font-size: 1.1rem;
-    margin-bottom: 12px;
-    text-align: left;
-    padding: 5px 0;
-    border-bottom: 1px dotted var(--light-bg);
+    font-weight: bold;
+    color: var(--text-color);
 }
-
-.profile-section p strong {
+.step.active {
     color: var(--primary-color);
-    display: inline-block;
-    width: 100px; /* Align labels */
+    border-bottom: 2px solid var(--secondary-color);
+    padding-bottom: 5px;
+}
+.booking-details-box {
+    background-color: var(--light-bg);
+    padding: 20px;
+    border-radius: var(--border-radius);
+    margin-bottom: 30px;
+}
+.slot-selection-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+.time-slot-btn {
+    padding: 10px;
+    background: var(--white);
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: var(--transition);
+    text-align: center;
+    font-weight: bold;
+}
+.time-slot-btn:hover, .time-slot-btn.selected {
+    background-color: var(--accent-color);
+    color: var(--white);
+    border-color: var(--accent-color);
+}
+.payment-options {
+    margin-top: 20px;
+    text-align: center;
+}
+.payment-option-card {
+    background: var(--white);
+    border: 2px solid var(--light-bg);
+    padding: 20px;
+    margin-bottom: 15px;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: var(--transition);
+}
+.payment-option-card:hover {
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+}
+/*========================================================================*/
+/*========================================================================*/
+/* 10. PLAYERS PAGE (players.html)                                        */
+/*========================================================================*/
+
+.players-section {
+    padding: 50px 0;
 }
 
-.fas fa-futbol{
-    width: 32px;
-    height: 32px;
+.players-container {
+    max-width: 800px;
+    margin: auto;
+}
+
+.player-card {
+    background: var(--white);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    padding: 25px 30px;
+    margin-bottom: 20px;
+    transition: var(--transition);
+}
+
+.player-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.player-card p {
+    margin: 8px 0;
+    font-size: 1rem;
+    color: var(--text-color);
+}
+
+.player-card strong {
+    color: var(--primary-color);
+}
+
+.sports-list {
+    display: inline-block;
+    background-color: var(--light-bg);
+    color: var(--text-color);
+    padding: 5px 10px;
+    border-radius: var(--border-radius);
+    margin-right: 5px;
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.invite-btn {
+    margin-top: 10px;
+    background: var(--accent-color);
+    color: var(--white);
+    border: none;
+    padding: 8px 15px;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-weight: bold;
+    transition: var(--transition);
+}
+
+.invite-btn:hover {
+    background: var(--secondary-color);
+}
+
+.players-empty {
+    text-align: center;
+    color: var(--text-color);
+    font-size: 1.1rem;
+    margin-top: 50px;
 }

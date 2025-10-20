@@ -13,9 +13,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateVenueRequest {
-    @NotBlank(message = "venuename is required")
+    @NotBlank(message = "venueName is required")
     @Size(max = 200)
-    private String venuename;
+    private String venueName;
 
     @Size(max = 300)
     private String street;
@@ -28,9 +28,9 @@ public class CreateVenueRequest {
     @Size(max = 100)
     private String state;
 
-    @NotBlank(message = "pincode is required")
+    @NotBlank(message = "pinCode is required")
     @Size(max = 20)
-    private String pincode;
+    private String pinCode;
 
     @NotNull(message = "managerId is required")
     private Long managerId;

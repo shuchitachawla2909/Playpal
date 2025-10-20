@@ -15,7 +15,9 @@ import lombok.*;
 public class Manager {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String managername;
+
+    private String name;
+
     private String contact;
     private String email;
     private String password;

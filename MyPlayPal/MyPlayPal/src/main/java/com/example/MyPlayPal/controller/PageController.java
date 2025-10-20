@@ -1,7 +1,15 @@
 package com.example.MyPlayPal.controller;
 
+import com.example.MyPlayPal.dto.VenueDto;
+import com.example.MyPlayPal.service.SportService;
+import com.example.MyPlayPal.service.VenueService;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+
+import java.security.Principal;
+import java.util.List;
 
 
 @Controller

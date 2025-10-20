@@ -30,6 +30,10 @@ public class Booking {
 
     private BigDecimal totalAmount;
 
+    // The service layer sets this field *after* the entity is created and saved.
+    // By default, @Data gives a setter, but being explicit with @Setter is safer
+    // if you use @Data with @Builder, as the built object is then modified.
+    @Setter // ⭐ ADDED @Setter for transactional updates
     @OneToOne(mappedBy = "booking", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private PaymentTransaction payment;
 

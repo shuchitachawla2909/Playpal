@@ -13,10 +13,11 @@ import java.math.BigDecimal;
 @Builder
 public class CourtDto {
     private Long id;
-    private String courtname;
+    private String courtName;
     private Long venueId;
     private Long sportId;
     private BigDecimal hourlyRate;
     private Boolean isBookable;
+    private String sportImageUrl;
 }
 
