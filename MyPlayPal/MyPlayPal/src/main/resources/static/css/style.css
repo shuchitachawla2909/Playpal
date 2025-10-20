@@ -783,3 +783,75 @@ input[type="text"], input[type="email"], input[type="password"], input[type="num
     border-color: var(--secondary-color);
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
 }
+/*========================================================================*/
+/*========================================================================*/
+/* 10. PLAYERS PAGE (players.html)                                        */
+/*========================================================================*/
+
+.players-section {
+    padding: 50px 0;
+}
+
+.players-container {
+    max-width: 800px;
+    margin: auto;
+}
+
+.player-card {
+    background: var(--white);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    padding: 25px 30px;
+    margin-bottom: 20px;
+    transition: var(--transition);
+}
+
+.player-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.player-card p {
+    margin: 8px 0;
+    font-size: 1rem;
+    color: var(--text-color);
+}
+
+.player-card strong {
+    color: var(--primary-color);
+}
+
+.sports-list {
+    display: inline-block;
+    background-color: var(--light-bg);
+    color: var(--text-color);
+    padding: 5px 10px;
+    border-radius: var(--border-radius);
+    margin-right: 5px;
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.invite-btn {
+    margin-top: 10px;
+    background: var(--accent-color);
+    color: var(--white);
+    border: none;
+    padding: 8px 15px;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-weight: bold;
+    transition: var(--transition);
+}
+
+.invite-btn:hover {
+    background: var(--secondary-color);
+}
+
+.players-empty {
+    text-align: center;
+    color: var(--text-color);
+    font-size: 1.1rem;
+    margin-top: 50px;
+}
