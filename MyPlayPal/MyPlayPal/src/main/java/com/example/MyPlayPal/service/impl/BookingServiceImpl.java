@@ -10,10 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,71 +21,56 @@ public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepo;
     private final UserRepository userRepo;
     private final PaymentTransactionRepository paymentRepo;
-    private final CourtRepository courtRepo;
 
     public BookingServiceImpl(CourtSlotRepository slotRepo,
                               BookingRepository bookingRepo,
                               UserRepository userRepo,
-                              PaymentTransactionRepository paymentRepo,
-                              CourtRepository courtRepo) {
+                              PaymentTransactionRepository paymentRepo) {
         this.slotRepo = slotRepo;
         this.bookingRepo = bookingRepo;
         this.userRepo = userRepo;
         this.paymentRepo = paymentRepo;
-        this.courtRepo = courtRepo;
     }
 
     @Override
     @Transactional
     public BookingDto createBooking(CreateBookingRequest req) {
-        // --- 1. User and Time Validation ---
         User user = userRepo.findById(req.getUserId()).orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
-        // Convert DTO fields (LocalDate, String) to LocalDateTime
-        LocalTime requestedStartTime = LocalTime.parse(req.getStartTime());
-        LocalDateTime startDateTime = req.getBookingDate().atTime(requestedStartTime);
-        LocalDateTime endDateTime = startDateTime.plusHours(1); // Assuming 1-hour slots
-
-        // --- 2. Find and Lock Slot ---
-        // Uses the correctly named repository method: findByCourtIdAndStartTimeAndEndTime
-        CourtSlot slot = slotRepo.findByCourtIdAndStartTimeAndEndTime(req.getCourtId(), startDateTime, endDateTime)
-                .orElseThrow(() -> new ResourceNotFoundException("Slot not found for specified date/time/court."));
-
-        // Check availability (Note: The repository query should ideally filter status too)
-        if (!slot.getStatus().equals(CourtSlot.SlotStatus.AVAILABLE)) {
-            throw new IllegalStateException("Slot is not available for booking.");
+        CourtSlot slot = slotRepo.findByIdForUpdate(req.getSlotId()).orElseThrow(() -> new ResourceNotFoundException("Slot not found"));
+        if (slot.getEndTime().isBefore(slot.getStartTime()) || slot.getEndTime().equals(slot.getStartTime())) {
+            throw new IllegalArgumentException("Slot end time must be after start time");
         }
 
-        // --- 3. Process Transaction ---
+        if (!slot.isAvailable()) {
+            throw new IllegalStateException("Slot not available");
+        }
+
         slot.setStatus(CourtSlot.SlotStatus.BOOKED);
         slotRepo.save(slot);
 
-        // Calculate Total Amount (Server-side validation of price)
-        BigDecimal rate = slot.getCourt().getHourlyRate() == null ? BigDecimal.ZERO : slot.getCourt().getHourlyRate();
+        var court = slot.getCourt();
+        BigDecimal rate = court.getHourlyRate() == null ? BigDecimal.ZERO : court.getHourlyRate();
 
         long minutes = java.time.Duration.between(slot.getStartTime(), slot.getEndTime()).toMinutes();
-        BigDecimal hours = BigDecimal.valueOf(minutes).divide(BigDecimal.valueOf(60), 2, RoundingMode.HALF_UP);
-        BigDecimal calculatedTotal = rate.multiply(hours);
+        BigDecimal hours = BigDecimal.valueOf(minutes).divide(BigDecimal.valueOf(60), 2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal total = rate.multiply(hours);
 
-        // --- 4. Create Booking ---
         Booking booking = Booking.builder()
                 .user(user)
                 .slot(slot)
                 .bookingDate(Instant.now())
                 .status(Booking.BookingStatus.CONFIRMED)
-                .totalAmount(calculatedTotal) // Use the server-calculated total
+                .totalAmount(total)
                 .build();
 
         Booking saved = bookingRepo.save(booking);
 
-        // --- 5. Create Payment Transaction Record ---
         PaymentTransaction tx = PaymentTransaction.builder()
                 .user(user)
                 .booking(saved)
-                .amount(calculatedTotal) // Use the final calculated amount
+                .amount(total)
                 .timestamp(Instant.now())
-                .status(PaymentTransaction.PaymentStatus.SUCCESS)
-                .referenceId(req.getPaymentRefId()) // Field added to PaymentTransaction model
+                .status(PaymentTransaction.PaymentStatus.SUCCESS) // mocked success
                 .build();
 
         PaymentTransaction savedTx = paymentRepo.save(tx);
@@ -107,7 +89,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<BookingDto> listByUser(Long userId) {
+    public java.util.List<BookingDto> listByUser(Long userId) {
         return bookingRepo.findByUserIdOrderByBookingDateDesc(userId).stream().map(this::toDto).collect(Collectors.toList());
     }
 
@@ -122,3 +104,4 @@ public class BookingServiceImpl implements BookingService {
                 .build();
     }
 }
+

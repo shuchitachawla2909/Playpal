@@ -8,5 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface SportRepository extends JpaRepository<Sport, Long> {
-    Optional<Sport> findBySportName(String sportName);
+    Optional<Sport> findBySportname(String sportname);
 }

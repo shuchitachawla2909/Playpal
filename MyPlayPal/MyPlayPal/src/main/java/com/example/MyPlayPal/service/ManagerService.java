@@ -2,11 +2,12 @@ package com.example.MyPlayPal.service;
 
 import com.example.MyPlayPal.dto.ManagerDto;
 import com.example.MyPlayPal.dto.ManagerSignupRequest;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
 public interface ManagerService {
-    ManagerDto createManager(ManagerSignupRequest req);
+    ManagerDto createManager(@Valid ManagerSignupRequest req);
     ManagerDto getById(Long id);
     List<ManagerDto> listAll();
 }

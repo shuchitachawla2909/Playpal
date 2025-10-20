@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <title>Profile - PlayPal</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
+<!-- Navigation -->
 <nav class="navbar">
     <div class="nav-container">
         <div class="nav-logo">
@@ -14,16 +14,19 @@
             <span>PlayPal</span>
         </div>
         <div class="nav-menu" id="nav-menu">
-            <a th:href="@{/}" class="nav-link">Home</a>
+            <a th:href="@{/}" class="nav-link active">Home</a>
             <a th:href="@{/venues}" class="nav-link">Book</a>
             <a th:href="@{/games}" class="nav-link">Games</a>
             <a th:href="@{/about}" class="nav-link">About</a>
             <a th:href="@{/contact}" class="nav-link">Contact</a>
+            <!-- start: replace this block inside your nav -->
             <div class="nav-auth" id="nav-auth">
+                <!-- when authenticated show profile + logout -->
                 <div th:if="${authenticated}" class="mydiv">
-                    <a th:href="@{/profile}" class="nav-link active">
+                    <a th:href="@{/profile}" class="nav-link">
                         <img th:src="${currentUser.profilePictureUrl != null} ? ${currentUser.profilePictureUrl} : @{/images/default-avatar.jpeg}"
                              alt="Profile" class="nav-avatar">
+                        <!--                        <span th:text="${currentUser.username}">User</span>-->
                     </a>
                     <form th:action="@{/logout}" method="post" style="display:inline-block">
                         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
@@ -31,12 +34,17 @@
                             Logout
                         </button>
                     </form>
+
                 </div>
+
+                <!-- when not authenticated show login/signup -->
                 <div th:unless="${authenticated}">
                     <a th:href="@{/login}" class="nav-link login-btn">Login</a>
                     <a th:href="@{/signup}" class="nav-link signup-btn active">Sign Up</a>
                 </div>
             </div>
+            <!-- end: replace -->
+
         </div>
         <div class="nav-hamburger" id="nav-hamburger">
             <span></span>
@@ -46,39 +54,19 @@
     </div>
 </nav>
 
-<section class="page-header">
-    <div class="container">
-        <h1>Your Profile</h1>
-        <p>Manage your PlayPal account details</p>
-    </div>
-</section>
 
-<section class="profile-section">
-    <div class="container profile-details-container">
-        <div class="profile-avatar-wrapper">
-            <img th:src="${user.profilePictureUrl != null} ? ${user.profilePictureUrl} : @{/images/default-avatar.jpeg}" alt="avatar" class="profile-avatar">
-        </div>
-        <div class="profile-info-grid">
-            <p><strong>Username:</strong> <span th:text="${user.username}"></span></p>
-            <p><strong>Email:</strong> <span th:text="${user.email}"></span></p>
-            <p><strong>Contact:</strong> <span th:text="${user.contact}"></span></p>
-            <p><strong>City:</strong> <span th:text="${user.city}"></span></p>
-            <p><strong>State:</strong> <span th:text="${user.state}"></span></p>
-            <p><strong>Age:</strong> <span th:text="${user.age}"></span></p>
-        </div>
+<section class="profile-section">  <section> <h2>Your Profile</h2>
+    <div>
+        <img th:src="${user.profilePictureUrl != null} ? ${user.profilePictureUrl} : @{/images/default-avatar.jpeg}" alt="avatar" style="width:80px;height:80px;border-radius:50%;">
     </div>
+    <p><strong>Username:</strong> <span th:text="${user.username}"></span></p>
+    <p><strong>Email:</strong> <span th:text="${user.email}"></span></p>
+    <p><strong>Contact:</strong> <span th:text="${user.contact}"></span></p>
+    <p><strong>City:</strong> <span th:text="${user.city}"></span></p>
+    <p><strong>State:</strong> <span th:text="${user.state}"></span></p>
+    <p><strong>Age:</strong> <span th:text="${user.age}"></span></p>
 </section>
+</section>>
 
-<footer class="footer">
-    <div class="container">
-        <div class="footer-content">
-            <div class="footer-logo">
-                <i class="fas fa-futbol"></i>
-                <span>PlayPal</span>
-            </div>
-            <p>&copy; 2025 PlayPal. All rights reserved.</p>
-        </div>
-    </div>
-</footer>
 </body>
 </html>

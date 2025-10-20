@@ -58,7 +58,7 @@ public class AuthServiceImpl implements AuthService {
                 .ifPresent(m -> { throw new RuntimeException("Email already exists"); });
 
         Manager manager = Manager.builder()
-                .name(req.getName())
+                .managername(req.getManagername())
                 .contact(req.getContact())
                 .email(req.getEmail())
                 .password(passwordEncoder.encode(req.getPassword()))
@@ -66,8 +66,8 @@ public class AuthServiceImpl implements AuthService {
 
         managerRepo.save(manager);
 
-        String token = jwtUtil.generateToken(manager.getName());
-        return new AuthResponse(token, "MANAGER", manager.getName());
+        String token = jwtUtil.generateToken(manager.getManagername());
+        return new AuthResponse(token, "MANAGER", manager.getManagername());
     }
 
     // ---------------------- LOGIN (checks both tables) ----------------------
@@ -88,16 +88,16 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // If not found, try manager table
-        var managerOpt = managerRepo.findByName(req.getUsername());
+        var managerOpt = managerRepo.findByManagername(req.getUsername());
         if (managerOpt.isPresent()) {
             Manager manager = managerOpt.get();
             if (!passwordEncoder.matches(req.getPassword(), manager.getPassword())) {
                 throw new RuntimeException("Invalid credentials");
             }
             return new AuthResponse(
-                    jwtUtil.generateToken(manager.getName()),
+                    jwtUtil.generateToken(manager.getManagername()),
                     "MANAGER",
-                    manager.getName()
+                    manager.getManagername()
             );
         }
 

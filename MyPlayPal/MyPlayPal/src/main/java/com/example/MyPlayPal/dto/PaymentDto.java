@@ -21,3 +21,4 @@ public class PaymentDto {
     private Instant timestamp;
     private String status;
 }
+

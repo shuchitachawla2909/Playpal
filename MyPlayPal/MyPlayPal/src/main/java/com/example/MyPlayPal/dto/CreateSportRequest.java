@@ -12,8 +12,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateSportRequest {
-    @NotBlank(message = "sportName is required")
+    @NotBlank(message = "sportname is required")
     @Size(max = 100)
-    private String sportName;
+    private String sportname;
     private String sportImageUrl;
 }

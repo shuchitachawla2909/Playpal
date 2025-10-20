@@ -29,10 +29,8 @@ public class PaymentTransaction {
     @Enumerated(EnumType.STRING)
     private PaymentStatus status = PaymentStatus.INITIATED;
 
-    // ⭐ FIX 2: Added field for the payment gateway reference ID
-    private String referenceId;
-
     public enum PaymentStatus {
         INITIATED, SUCCESS, FAILED, REFUNDED
     }
 }
+

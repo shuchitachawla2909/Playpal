@@ -14,9 +14,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateManagerRequest {
-    @NotBlank(message = "name is required")
+    @NotBlank(message = "managername is required")
     @Size(max = 200)
-    private String name;
+    private String managername;
 
     @NotBlank(message = "contact is required")
     @Pattern(regexp = "\\d{7,15}", message = "contact must be digits (7-15 digits)")

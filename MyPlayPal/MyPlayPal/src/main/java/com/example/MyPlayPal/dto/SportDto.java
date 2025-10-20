@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class SportDto {
     private Long id;
-    private String sportName;
+    private String sportname;
     private String sportImageUrl;
 }
 

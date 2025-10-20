@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 public class Court {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String courtName;
+    private String courtname;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "venue_id")
