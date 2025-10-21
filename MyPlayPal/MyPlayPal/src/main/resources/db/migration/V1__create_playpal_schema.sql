@@ -155,3 +155,6 @@ CREATE TABLE user_sport (
   CONSTRAINT fk_us_sport FOREIGN KEY (sport_id) REFERENCES sports(id) ON DELETE CASCADE,
   CONSTRAINT ux_user_sport UNIQUE (user_id, sport_id)
 ) ENGINE=InnoDB;
+
+ALTER TABLE sports ADD COLUMN sport_image_url VARCHAR(255) DEFAULT NULL;
+ALTER TABLE venues ADD COLUMN venue_image_url VARCHAR(255) DEFAULT NULL;
