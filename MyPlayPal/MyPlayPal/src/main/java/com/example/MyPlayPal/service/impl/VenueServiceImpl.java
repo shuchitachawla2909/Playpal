@@ -1,12 +1,15 @@
 package com.example.MyPlayPal.service.impl;
 
+import com.example.MyPlayPal.dto.CourtDto;
 import com.example.MyPlayPal.dto.CreateVenueRequest;
 import com.example.MyPlayPal.dto.VenueDto;
 import com.example.MyPlayPal.exception.ResourceNotFoundException;
+import com.example.MyPlayPal.model.Court;
 import com.example.MyPlayPal.model.Manager;
 import com.example.MyPlayPal.model.Venue;
 import com.example.MyPlayPal.repository.ManagerRepository;
 import com.example.MyPlayPal.repository.VenueRepository;
+import com.example.MyPlayPal.repository.CourtRepository;
 import com.example.MyPlayPal.service.VenueService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,10 +22,13 @@ public class VenueServiceImpl implements VenueService {
 
     private final VenueRepository venueRepository;
     private final ManagerRepository managerRepository;
+    private final CourtRepository courtRepository;
 
-    public VenueServiceImpl(VenueRepository venueRepository, ManagerRepository managerRepository) {
+    public VenueServiceImpl(VenueRepository venueRepository, ManagerRepository managerRepository,
+                            CourtRepository courtRepository) {
         this.venueRepository = venueRepository;
         this.managerRepository = managerRepository;
+        this.courtRepository = courtRepository;
     }
 
     @Override
@@ -97,5 +103,31 @@ public class VenueServiceImpl implements VenueService {
                         .rating(v.getRating())
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public CourtDto getCourtById(Long courtId) {
+        Court court = courtRepository.findById(courtId)
+                .orElseThrow(() -> new ResourceNotFoundException("Court not found with ID: " + courtId));
+
+        return mapCourtToDto(court);
+    }
+
+    /**
+     * Helper method to map Court Entity to Court DTO.
+     */
+    private CourtDto mapCourtToDto(Court court) {
+        return CourtDto.builder()
+                .id(court.getId())
+                .courtname(court.getSport().getSportname())
+                .hourlyRate(court.getHourlyRate())
+                .venueId(court.getVenue().getId())
+                .sportId(court.getSport().getId())
+                .isBookable(court.getIsBookable())
+                // NOTE: If CourtDto needs sportImageUrl, you must map it here:
+//                 .sportImageUrl(court.getSport().getSportImageUrl())
+
+                .build();
     }
 }

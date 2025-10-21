@@ -18,6 +18,7 @@ public interface CourtSlotRepository extends JpaRepository<CourtSlot, Long> {
     @Query("select s from CourtSlot s where s.id = :id")
     Optional<CourtSlot> findByIdForUpdate(@Param("id") Long id);
 
+    Optional<CourtSlot> findByCourtIdAndStartTimeAndEndTime(Long courtId, LocalDateTime startTime, LocalDateTime endTime);
     List<CourtSlot> findByCourtIdAndStartTimeBetween(Long courtId, LocalDateTime from, LocalDateTime to);
 
     List<CourtSlot> findByCourtIdAndStatus(Long courtId, CourtSlot.SlotStatus status);

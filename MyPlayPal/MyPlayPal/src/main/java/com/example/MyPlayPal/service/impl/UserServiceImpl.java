@@ -3,6 +3,7 @@ package com.example.MyPlayPal.service.impl;
 import com.example.MyPlayPal.dto.UpdateUserRequest;
 import com.example.MyPlayPal.dto.UserDto;
 import com.example.MyPlayPal.dto.UserSignupRequest;
+import com.example.MyPlayPal.exception.ResourceNotFoundException;
 import com.example.MyPlayPal.model.User;
 import com.example.MyPlayPal.repository.UserRepository;
 import com.example.MyPlayPal.service.UserService;
@@ -104,6 +105,18 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
         userRepository.delete(user);
     }
+
+    @Override
+    public Long getUserIdByUsername(String username) {
+        // Find the user by username and map to their ID.
+        // Assumes UserRepository has findByUsername(String) defined.
+        return userRepository.findByUsername(username)
+                .map(User::getId)
+                // Throw a custom exception if the authenticated user cannot be found,
+                // which prevents potential NullPointerExceptions in the controller.
+                .orElseThrow(() -> new ResourceNotFoundException("Authenticated user ID not found for username: " + username));
+    }
+
 }
 
 

@@ -45,8 +45,6 @@
                     </form>
                 </div>
 
-
-
                 <!-- when not authenticated show login/signup -->
                 <div th:unless="${authenticated}">
                     <a th:href="@{/login}" class="nav-link login-btn">Login</a>
@@ -81,21 +79,21 @@
     <div class="container">
         <h2 class="section-title">Why Choose PlayPal?</h2>
         <div class="features-grid">
-            <div class="feature-card">
+            <a th:href="@{/venues}" class="feature-card">
                 <i class="fas fa-map-marker-alt"></i>
                 <h3>Book Venues</h3>
                 <p>Find and book premium sports venues near you with instant confirmation</p>
-            </div>
-            <div class="feature-card">
+            </a>
+            <a th:href="@{players}" class="feature-card">
                 <i class="fas fa-users"></i>
                 <h3>Find Players</h3>
                 <p>Connect with like-minded players and join games in your area</p>
-            </div>
-            <div class="feature-card">
+            </a>
+            <a th:href="@{/games}" class="feature-card">
                 <i class="fas fa-calendar-alt"></i>
                 <h3>Organize Games</h3>
                 <p>Create and manage your own games with our easy-to-use platform</p>
-            </div>
+            </a>
         </div>
     </div>
 </section>

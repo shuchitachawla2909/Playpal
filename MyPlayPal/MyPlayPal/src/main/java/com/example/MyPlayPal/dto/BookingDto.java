@@ -16,6 +16,7 @@ public class BookingDto {
     private Long id;
     private Long userId;
     private Long slotId;
+    private Long courtId;
     private Instant bookingDate;
     private String status;
     private BigDecimal totalAmount;

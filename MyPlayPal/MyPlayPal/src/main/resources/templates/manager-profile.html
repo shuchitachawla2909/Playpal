@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
     <title>Manager Profile - PlayPal</title>
@@ -21,11 +21,18 @@
             <a th:href="@{/contact}" class="nav-link">Contact</a>
 
             <div class="nav-auth" id="nav-auth">
-                <div th:if="${authenticated}" class="mydiv">
-                    <a th:href="@{/manager/profile}" class="nav-link">
-                        <img th:src="@{/images/default-avatar.jpeg}"
+                <!-- When authenticated, show profile + logout -->
+                <div sec:authorize="isAuthenticated()" class="mydiv">
+
+                    <a sec:authorize="hasRole('USER')" th:href="@{/profile}" class="nav-link">
+                        <img th:src="${currentUser.profilePictureUrl != null} ? ${currentUser.profilePictureUrl} : @{/images/default-avatar.jpeg}"
                              alt="Profile" class="nav-avatar">
                     </a>
+
+                    <a sec:authorize="hasRole('MANAGER')" th:href="@{/manager/profile}" class="nav-link">
+                        <img th:src="@{/images/default-avatar.jpeg}" alt="Manager Profile" class="nav-avatar">
+                    </a>
+
                     <form th:action="@{/logout}" method="post" style="display:inline-block">
                         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                         <button type="submit" class="nav-link logout-btn">
@@ -34,9 +41,10 @@
                     </form>
                 </div>
 
+                <!-- when not authenticated show login/signup -->
                 <div th:unless="${authenticated}">
                     <a th:href="@{/login}" class="nav-link login-btn">Login</a>
-                    <a th:href="@{/signup}" class="nav-link signup-btn active">Sign Up</a>
+                    <a th:href="@{/signup}" class="signup-link signup-btn active">Sign Up</a>
                 </div>
             </div>
         </div>

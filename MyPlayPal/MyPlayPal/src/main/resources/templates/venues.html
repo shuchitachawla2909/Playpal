@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
 <head>
     <title>Available Venues</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
@@ -59,20 +59,24 @@
             <a th:href="@{/contact}" class="nav-link">Contact</a>
             <!-- start: replace this block inside your nav -->
             <div class="nav-auth" id="nav-auth">
-                <!-- when authenticated show profile + logout -->
-                <div th:if="${authenticated}" class="mydiv">
-                    <a th:href="@{/profile}" class="nav-link">
+                <!-- When authenticated, show profile + logout -->
+                <div sec:authorize="isAuthenticated()" class="mydiv">
+
+                    <a sec:authorize="hasRole('USER')" th:href="@{/profile}" class="nav-link">
                         <img th:src="${currentUser.profilePictureUrl != null} ? ${currentUser.profilePictureUrl} : @{/images/default-avatar.jpeg}"
                              alt="Profile" class="nav-avatar">
-                        <!--                        <span th:text="${currentUser.username}">User</span>-->
                     </a>
+
+                    <a sec:authorize="hasRole('MANAGER')" th:href="@{/manager/profile}" class="nav-link">
+                        <img th:src="@{/images/default-avatar.jpeg}" alt="Manager Profile" class="nav-avatar">
+                    </a>
+
                     <form th:action="@{/logout}" method="post" style="display:inline-block">
                         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                         <button type="submit" class="nav-link logout-btn">
                             Logout
                         </button>
                     </form>
-
                 </div>
 
                 <!-- when not authenticated show login/signup -->
@@ -100,15 +104,17 @@
     </div>
 </section>
 
+
 <div class="card-container">
-    <div class="card" th:each="venue : ${venues}">
+    <a th:href="@{/venues/{id}(id=${venue.id})}" class="card" th:each="venue : ${venues}">
         <img th:src="@{${venue.venueImageUrl}}" alt="Venue Image">
         <div class="card-body">
             <h3 th:text="${venue.venuename}"></h3>
             <p th:text="${venue.city}"></p>
         </div>
-    </div>
+    </a>
 </div>
+
 
 <!-- Footer -->
 <footer class="footer">

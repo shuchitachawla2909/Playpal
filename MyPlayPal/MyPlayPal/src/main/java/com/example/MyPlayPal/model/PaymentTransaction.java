@@ -29,6 +29,8 @@ public class PaymentTransaction {
     @Enumerated(EnumType.STRING)
     private PaymentStatus status = PaymentStatus.INITIATED;
 
+    private String referenceId;
+
     public enum PaymentStatus {
         INITIATED, SUCCESS, FAILED, REFUNDED
     }

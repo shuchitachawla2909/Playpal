@@ -20,7 +20,10 @@ public class VenueDto {
     private Double rating;
     private String venueImageUrl;
 
-    // NEW FIELDS FOR REVIEWS
-    private Double averageRating = 0.0; // Default to 0.0
-    private List<ReviewDto> reviews; // List of individual reviews
+    // Example fields added for booking flow:
+    private String managerName;
+    private String managerContact;
+
+    // ⭐ CRITICAL FIELD for venue-detail.html
+    private List<CourtDto> courts;
 }

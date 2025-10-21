@@ -3,6 +3,8 @@ package com.example.MyPlayPal.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Entity
 @Table(name = "venues")
 @Data
@@ -25,4 +27,7 @@ public class Venue {
 
     @Column(name = "venue_image_url")
     private String venueImageUrl;
+
+    @OneToMany(mappedBy = "venue", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Court> courts;
 }

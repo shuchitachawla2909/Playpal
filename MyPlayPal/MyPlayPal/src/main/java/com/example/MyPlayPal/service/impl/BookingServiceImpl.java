@@ -10,98 +10,114 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 public class BookingServiceImpl implements BookingService {
 
-    private final CourtSlotRepository slotRepo;
     private final BookingRepository bookingRepo;
     private final UserRepository userRepo;
     private final PaymentTransactionRepository paymentRepo;
+    private final CourtRepository courtRepo;
+    private final CourtSlotRepository slotRepo;
 
     public BookingServiceImpl(CourtSlotRepository slotRepo,
                               BookingRepository bookingRepo,
                               UserRepository userRepo,
-                              PaymentTransactionRepository paymentRepo) {
+                              PaymentTransactionRepository paymentRepo,
+                              CourtRepository courtRepo) {
         this.slotRepo = slotRepo;
         this.bookingRepo = bookingRepo;
         this.userRepo = userRepo;
         this.paymentRepo = paymentRepo;
+        this.courtRepo = courtRepo;
     }
 
     @Override
     @Transactional
     public BookingDto createBooking(CreateBookingRequest req) {
-        User user = userRepo.findById(req.getUserId()).orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        CourtSlot slot = slotRepo.findByIdForUpdate(req.getSlotId()).orElseThrow(() -> new ResourceNotFoundException("Slot not found"));
-        if (slot.getEndTime().isBefore(slot.getStartTime()) || slot.getEndTime().equals(slot.getStartTime())) {
-            throw new IllegalArgumentException("Slot end time must be after start time");
+        // --- 1. User and Time Validation ---
+        User user = userRepo.findById(req.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        LocalTime requestedStartTime = LocalTime.parse(req.getStartTime());
+        LocalDateTime startDateTime = req.getBookingDate().atTime(requestedStartTime);
+        LocalDateTime endDateTime = startDateTime.plusHours(1); // Assuming 1-hour slots
+
+        // --- 2. Find and Lock Slot ---
+        CourtSlot slot = slotRepo.findByCourtIdAndStartTimeAndEndTime(req.getCourtId(), startDateTime, endDateTime)
+                .orElseThrow(() -> new ResourceNotFoundException("Slot not found for specified date/time/court."));
+
+        if (!slot.getStatus().equals(CourtSlot.SlotStatus.AVAILABLE)) {
+            throw new IllegalStateException("Slot is not available for booking.");
         }
 
-        if (!slot.isAvailable()) {
-            throw new IllegalStateException("Slot not available");
-        }
-
+        // --- 3. Process Transaction ---
         slot.setStatus(CourtSlot.SlotStatus.BOOKED);
         slotRepo.save(slot);
 
-        var court = slot.getCourt();
-        BigDecimal rate = court.getHourlyRate() == null ? BigDecimal.ZERO : court.getHourlyRate();
-
+        BigDecimal rate = slot.getCourt().getHourlyRate() == null ? BigDecimal.ZERO : slot.getCourt().getHourlyRate();
         long minutes = java.time.Duration.between(slot.getStartTime(), slot.getEndTime()).toMinutes();
-        BigDecimal hours = BigDecimal.valueOf(minutes).divide(BigDecimal.valueOf(60), 2, BigDecimal.ROUND_HALF_UP);
-        BigDecimal total = rate.multiply(hours);
+        BigDecimal hours = BigDecimal.valueOf(minutes).divide(BigDecimal.valueOf(60), 2, RoundingMode.HALF_UP);
+        BigDecimal calculatedTotal = rate.multiply(hours);
 
+        // --- 4. Create Booking ---
         Booking booking = Booking.builder()
                 .user(user)
                 .slot(slot)
                 .bookingDate(Instant.now())
                 .status(Booking.BookingStatus.CONFIRMED)
-                .totalAmount(total)
+                .totalAmount(calculatedTotal)
                 .build();
 
         Booking saved = bookingRepo.save(booking);
 
+        // --- 5. Create Payment Transaction Record ---
         PaymentTransaction tx = PaymentTransaction.builder()
                 .user(user)
                 .booking(saved)
-                .amount(total)
+                .amount(calculatedTotal)
                 .timestamp(Instant.now())
-                .status(PaymentTransaction.PaymentStatus.SUCCESS) // mocked success
+                .status(PaymentTransaction.PaymentStatus.SUCCESS)
+                .referenceId(req.getPaymentRefId())
                 .build();
 
-        PaymentTransaction savedTx = paymentRepo.save(tx);
-        saved.setPayment(savedTx);
-        bookingRepo.save(saved);
+        paymentRepo.save(tx);
 
+        // Convert to DTO and return
         return toDto(saved);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public BookingDto getById(Long id) {
-        Booking b = bookingRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Booking not found"));
-        return toDto(b);
+    public List<BookingDto> listByUser(Long userId) {
+        return bookingRepo.findByUserIdOrderByBookingDateDesc(userId)
+                .stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+    }
+
+    private BookingDto toDto(Booking booking) {
+        return BookingDto.builder()
+                .id(booking.getId())
+                .userId(booking.getUser().getId())
+                .courtId(booking.getSlot().getCourt().getId())
+                .bookingDate(booking.getBookingDate())
+                .totalAmount(booking.getTotalAmount())
+                .status(booking.getStatus().name())
+                .build();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public java.util.List<BookingDto> listByUser(Long userId) {
-        return bookingRepo.findByUserIdOrderByBookingDateDesc(userId).stream().map(this::toDto).collect(Collectors.toList());
-    }
-
-    private BookingDto toDto(Booking b) {
-        return BookingDto.builder()
-                .id(b.getId())
-                .userId(b.getUser() == null ? null : b.getUser().getId())
-                .slotId(b.getSlot() == null ? null : b.getSlot().getId())
-                .bookingDate(b.getBookingDate())
-                .status(b.getStatus().name())
-                .totalAmount(b.getTotalAmount())
-                .build();
+    public BookingDto getById(Long id) {
+        Booking booking = bookingRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found with id: " + id));
+        return toDto(booking);
     }
 }
-
