@@ -212,22 +212,45 @@
 <!-- JS to toggle fields -->
 <script>
     const roleSelect = document.getElementById('roleSelect');
-    const userFields = document.getElementById('userFields');
-    const managerFields = document.getElementById('managerFields');
+    const signupForm = document.getElementById('signupForm');
+    const userFields = document.querySelectorAll('#userFields [name]');
+    const managerFields = document.querySelectorAll('#managerFields [name]');
+    const userBlock = document.getElementById('userFields');
+    const managerBlock = document.getElementById('managerFields');
+
+    function setDisabled(fields, disabled) {
+        fields.forEach(f => {
+            f.disabled = disabled;
+            if (disabled) f.value = ''; // Optional: clear hidden field values
+        });
+    }
 
     roleSelect.addEventListener('change', function () {
         const role = this.value;
+
         if (role === 'USER') {
-            userFields.style.display = 'block';
-            managerFields.style.display = 'none';
+            userBlock.style.display = 'block';
+            managerBlock.style.display = 'none';
+            setDisabled(userFields, false);
+            setDisabled(managerFields, true);
+<!--            signupForm.action = '/api/auth/signup/user';  // adjust to your endpoint-->
         } else if (role === 'MANAGER') {
-            userFields.style.display = 'none';
-            managerFields.style.display = 'block';
+            userBlock.style.display = 'none';
+            managerBlock.style.display = 'block';
+            setDisabled(userFields, true);
+            setDisabled(managerFields, false);
+<!--            signupForm.action = '/api/auth/signup/manager'; // adjust to your endpoint-->
         } else {
-            userFields.style.display = 'none';
-            managerFields.style.display = 'none';
+            userBlock.style.display = 'none';
+            managerBlock.style.display = 'none';
+            setDisabled(userFields, true);
+            setDisabled(managerFields, true);
+<!--            signupForm.action = '#';-->
         }
     });
+
+    // Run once at load
+    roleSelect.dispatchEvent(new Event('change'));
 </script>
 
 </body>
