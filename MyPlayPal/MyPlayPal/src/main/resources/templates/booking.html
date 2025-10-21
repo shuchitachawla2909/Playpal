@@ -70,8 +70,8 @@
 
 <section class="page-header">
     <div class="container">
-        <h1 th:text="'Book: ' + ${court.courtName}">Book Sport</h1>
-        <p th:text="'at ' + ${venue.venueName}"></p>
+        <h1 th:text="'Book: ' + ${court.courtname}">Book Sport</h1>
+        <p th:text="'at ' + ${venue.venuename}"></p>
     </div>
 </section>
 
@@ -155,7 +155,7 @@
             <div class="booking-details-box">
                 <i class="fas fa-check-circle fa-4x" style="color: var(--accent-color); margin-bottom: 20px;"></i>
                 <h3>Thank you for your reservation!</h3>
-                <p>Your court at <strong th:text="${venue.venueName}">Venue</strong> for <strong th:text="${court.courtName}">Sport</strong> is booked.</p>
+                <p>Your court at <strong th:text="${venue.venuename}">Venue</strong> for <strong th:text="${court.courtname}">Sport</strong> is booked.</p>
                 <p>A confirmation email has been sent.</p>
                 <p>Booking ID: <strong id="confirmation-booking-id">#PENDING</strong></p>
 

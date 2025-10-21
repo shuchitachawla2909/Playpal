@@ -75,7 +75,17 @@ public class VenueServiceImpl implements VenueService {
     @Override
     @Transactional(readOnly = true)
     public VenueDto getById(Long id) {
-        Venue v = venueRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Venue not found"));
+        Venue v = venueRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Venue not found"));
+
+        // Fetch courts for this venue
+        List<Court> courts = courtRepository.findByVenueId(v.getId());
+
+        // Map courts to CourtDto list
+        List<CourtDto> courtDtos = courts.stream()
+                .map(this::mapCourtToDto)
+                .collect(Collectors.toList());
+
         return VenueDto.builder()
                 .id(v.getId())
                 .venuename(v.getVenuename())
@@ -85,8 +95,11 @@ public class VenueServiceImpl implements VenueService {
                 .pincode(v.getPincode())
                 .managerId(v.getManager() == null ? null : v.getManager().getId())
                 .rating(v.getRating())
+                .venueImageUrl(v.getVenueImageUrl())
+                .courts(courtDtos) // ✅ Include the list
                 .build();
     }
+
 
     @Override
     @Transactional(readOnly = true)
@@ -126,7 +139,7 @@ public class VenueServiceImpl implements VenueService {
                 .sportId(court.getSport().getId())
                 .isBookable(court.getIsBookable())
                 // NOTE: If CourtDto needs sportImageUrl, you must map it here:
-//                 .sportImageUrl(court.getSport().getSportImageUrl())
+                .sportImageUrl(court.getSport().getSportImageUrl())
 
                 .build();
     }

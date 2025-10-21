@@ -18,5 +18,6 @@ public class CourtDto {
     private Long sportId;
     private BigDecimal hourlyRate;
     private Boolean isBookable;
+    private String sportImageUrl;
 }
 
