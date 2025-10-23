@@ -23,8 +23,13 @@ public class EventParticipant {
     private User user;
 
     private Instant joinDate = Instant.now();
-    private String status = "JOINED"; // or PENDING/CANCELLED
 
+    @Enumerated(EnumType.STRING)
+    private ParticipantStatus status = ParticipantStatus.JOINED;
+
+    public enum ParticipantStatus { JOINED, PENDING, CANCELLED }
+
+    @OneToOne(mappedBy = "participant", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    private PaymentTransaction payment;
 
 }
-

@@ -1,28 +1,58 @@
 package com.example.MyPlayPal.controller;
 
-import com.example.MyPlayPal.dto.EventParticipantDto;
+import com.example.MyPlayPal.model.Event;
+import com.example.MyPlayPal.model.EventParticipant;
+import com.example.MyPlayPal.model.User;
+import com.example.MyPlayPal.repository.EventRepository;
+import com.example.MyPlayPal.repository.UserRepository;
 import com.example.MyPlayPal.service.EventParticipantService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/event-participants")
+@RequestMapping("/api/participants")
+@RequiredArgsConstructor
 public class EventParticipantController {
 
-    @Autowired
-    private EventParticipantService participantService;
+    private final EventParticipantService participantService;
+    private final UserRepository userRepository;
+    private final EventRepository eventRepository;
 
+    // Join an event
     @PostMapping("/join")
-    public ResponseEntity<EventParticipantDto> joinEvent(
-            @RequestParam Long eventId,
-            @RequestParam Long userId) {
-        return ResponseEntity.ok(participantService.joinEvent(eventId, userId));
+    public EventParticipant joinEvent(@RequestParam Long eventId, @RequestParam Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("Event not found"));
+        return participantService.joinEvent(eventId, user);
     }
 
-    @GetMapping("/by-event/{eventId}")
-    public ResponseEntity<List<EventParticipantDto>> listByEvent(@PathVariable Long eventId) {
-        return ResponseEntity.ok(participantService.listByEvent(eventId));
+    // Leave an event
+    @PostMapping("/leave")
+    public void leaveEvent(@RequestParam Long eventId, @RequestParam Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("Event not found"));
+        participantService.leaveEvent(eventId, user);
+    }
+
+    // Get participants of an event
+    @GetMapping("/event/{eventId}")
+    public List<EventParticipant> getParticipants(@PathVariable Long eventId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("Event not found"));
+        return participantService.getParticipantsByEvent(event);
+    }
+
+    // Get events a user has joined
+    @GetMapping("/user/{userId}")
+    public List<EventParticipant> getEventsByUser(@PathVariable Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return participantService.getEventsByUser(user);
     }
 }

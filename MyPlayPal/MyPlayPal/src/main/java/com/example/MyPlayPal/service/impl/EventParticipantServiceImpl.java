@@ -1,108 +1,86 @@
 package com.example.MyPlayPal.service.impl;
 
-import com.example.MyPlayPal.dto.EventParticipantDto;
-import com.example.MyPlayPal.exception.ResourceNotFoundException;
 import com.example.MyPlayPal.model.Event;
 import com.example.MyPlayPal.model.EventParticipant;
 import com.example.MyPlayPal.model.User;
-import com.example.MyPlayPal.model.UserSport;
 import com.example.MyPlayPal.repository.EventParticipantRepository;
 import com.example.MyPlayPal.repository.EventRepository;
-import com.example.MyPlayPal.repository.UserRepository;
-import com.example.MyPlayPal.repository.UserSportRepository;
 import com.example.MyPlayPal.service.EventParticipantService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
+@Transactional
 public class EventParticipantServiceImpl implements EventParticipantService {
 
-    private final EventParticipantRepository repo;
-    private final EventRepository eventRepo;
-    private final UserRepository userRepo;
-    private final UserSportRepository userSportRepo; // Added to check skills
+    private final EventRepository eventRepository;
+    private final EventParticipantRepository participantRepository;
 
-    public EventParticipantServiceImpl(EventParticipantRepository repo,
-                                       EventRepository eventRepo,
-                                       UserRepository userRepo,
-                                       UserSportRepository userSportRepo) {
-        this.repo = repo;
-        this.eventRepo = eventRepo;
-        this.userRepo = userRepo;
-        this.userSportRepo = userSportRepo;
+    @Override
+    public EventParticipant joinEvent(Long eventId, User user) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("Event not found"));
+
+        // Check if already joined
+        participantRepository.findByEventAndUser(event, user)
+                .ifPresent(p -> { throw new RuntimeException("User already joined this event"); });
+
+        // Check max players
+        if (event.getCurrentPlayers() >= event.getMaxPlayers()) {
+            throw new RuntimeException("Event is full");
+        }
+
+        EventParticipant participant = EventParticipant.builder()
+                .event(event)
+                .user(user)
+                .status(EventParticipant.ParticipantStatus.JOINED)
+                .build();
+
+        // Update event player count
+        event.setCurrentPlayers(event.getCurrentPlayers() + 1);
+        eventRepository.save(event);
+
+        return participantRepository.save(participant);
     }
 
     @Override
-    @Transactional
-    public EventParticipantDto joinEvent(Long eventId, Long userId) {
-        Event e = eventRepo.findById(eventId)
-                .orElseThrow(() -> new ResourceNotFoundException("Event not found"));
-        User u = userRepo.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    public void leaveEvent(Long eventId, User user) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("Event not found"));
 
-        // 1️⃣ Check duplicate participation
-        repo.findByEventIdAndUserId(eventId, userId).ifPresent(ep -> {
-            throw new IllegalArgumentException("User already joined event");
-        });
+        EventParticipant participant = participantRepository.findByEventAndUser(event, user)
+                .orElseThrow(() -> new RuntimeException("User not part of this event"));
 
-        // 2️⃣ Check skill level
-        UserSport userSkill = userSportRepo.findByUserIdAndSportId(userId, e.getSport().getId())
-                .orElseThrow(() -> new IllegalArgumentException("User has not declared skill for this sport"));
+        // Remove participant
+        participantRepository.delete(participant);
 
-        if (!isSkillSufficient(userSkill.getSkillLevel(), e.getSkillLevelRequired())) {
-            throw new IllegalArgumentException("User skill level does not meet event requirement");
-        }
-
-        // 3️⃣ Check event capacity
-        if (e.getCurrentPlayers() >= e.getMaxPlayers()) {
-            throw new IllegalStateException("Event is full");
-        }
-
-        // 4️⃣ Create participant record
-        EventParticipant ep = EventParticipant.builder()
-                .event(e)
-                .user(u)
-                .joinDate(Instant.now())
-                .status("JOINED")
-                .build();
-
-        EventParticipant saved = repo.save(ep);
-
-        // 5️⃣ Increment event's current player count
-        e.setCurrentPlayers(e.getCurrentPlayers() + 1);
-        eventRepo.save(e);
-
-        return EventParticipantDto.builder()
-                .id(saved.getId())
-                .eventId(e.getId())
-                .userId(u.getId())
-                .joinDate(saved.getJoinDate())
-                .status(saved.getStatus())
-                .build();
+        // Update player count
+        event.setCurrentPlayers(event.getCurrentPlayers() - 1);
+        eventRepository.save(event);
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<EventParticipantDto> listByEvent(Long eventId) {
-        return repo.findByEventId(eventId).stream().map(ep -> EventParticipantDto.builder()
-                .id(ep.getId())
-                .eventId(ep.getEvent().getId())
-                .userId(ep.getUser().getId())
-                .joinDate(ep.getJoinDate())
-                .status(ep.getStatus())
-                .build()).collect(Collectors.toList());
+    public List<EventParticipant> getParticipantsByEvent(Event event) {
+        return participantRepository.findByEvent(event);
     }
 
-    // ✅ Helper: skill comparison
-    private boolean isSkillSufficient(String userSkill, String requiredSkill) {
-        List<String> levels = List.of("beginner", "intermediate", "advanced");
-        int userIndex = levels.indexOf(userSkill.toLowerCase());
-        int requiredIndex = levels.indexOf(requiredSkill.toLowerCase());
-        return userIndex >= requiredIndex;
+    @Override
+    public List<EventParticipant> getEventsByUser(User user) {
+        return participantRepository.findByUser(user);
+    }
+
+    @Override
+    public boolean isUserParticipant(Event event, User user) {
+        return participantRepository.findByEventAndUser(event, user).isPresent();
+    }
+
+    @Override
+    public long countParticipantsByStatus(Event event, EventParticipant.ParticipantStatus status) {
+        return participantRepository.countByEventAndStatus(event, status);
     }
 }
-
