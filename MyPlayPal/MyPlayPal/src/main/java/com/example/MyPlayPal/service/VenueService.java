@@ -14,3 +14,4 @@ public interface VenueService {
 
     CourtDto getCourtById(Long courtId);
 }
+

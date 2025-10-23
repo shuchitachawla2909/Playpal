@@ -1,42 +1,48 @@
 package com.example.MyPlayPal.controller;
 
 import com.example.MyPlayPal.dto.VenueDto;
-import com.example.MyPlayPal.dto.CourtDto; // Assuming you have a Court DTO
+import com.example.MyPlayPal.dto.CourtDto;
+import com.example.MyPlayPal.dto.ReviewDto;
+import com.example.MyPlayPal.model.Venue;
 import com.example.MyPlayPal.service.VenueService;
+import com.example.MyPlayPal.service.ReviewService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import java.security.Principal;
 import java.util.List;
 
 @Controller
 public class VenuePageController {
 
     private final VenueService venueService;
+    private final ReviewService reviewService; // Add ReviewService dependency
 
-    public VenuePageController(VenueService venueService) {
+    @Autowired
+    public VenuePageController(VenueService venueService, ReviewService reviewService) {
         this.venueService = venueService;
+        this.reviewService = reviewService; // Initialize reviewService
     }
 
     @GetMapping("/venues")
     public String getVenuesPage(Model model) {
         List<VenueDto> venues = venueService.listAllVenues();
-
         model.addAttribute("venues", venues);
         return "venues";
     }
 
     @GetMapping("/venues/{id}")
-    public String venueDetails(@PathVariable("id") Long venueId, Model model) {
-        // Renamed variable to venueId for clarity
-        VenueDto venueDetail = venueService.getById(venueId);
+    public String getVenueDetail(@PathVariable Long id, Model model, Principal principal) {
+        VenueDto venue = venueService.getById(id); // Changed to VenueDto to match service
+        List<ReviewDto> reviews = reviewService.listByVenue(id);
 
-        if (venueDetail == null) {
-            return "redirect:/venues"; // Redirect if venue not found
-        }
-        model.addAttribute("venue", venueDetail);
+        model.addAttribute("venue", venue);
+        model.addAttribute("reviews", reviews);
+        model.addAttribute("authenticated", principal != null);
+
         return "venue-detail";
     }
 
@@ -46,19 +52,15 @@ public class VenuePageController {
             @PathVariable Long courtId,
             Model model
     ) {
-        // 1. Fetch Venue details
         VenueDto venue = venueService.getById(venueId);
-
-        // 2. Fetch Court details (Assuming a method to get a specific court/sport)
         CourtDto court = venueService.getCourtById(courtId);
 
         if (venue == null || court == null) {
-            // Handle error: redirect back if resources are missing
             return "redirect:/venues";
         }
 
         model.addAttribute("venue", venue);
         model.addAttribute("court", court);
-        return "booking"; // Renders booking.html
+        return "booking";
     }
 }

@@ -30,4 +30,7 @@ public class Venue {
 
     @OneToMany(mappedBy = "venue", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Court> courts;
+
+
+
 }

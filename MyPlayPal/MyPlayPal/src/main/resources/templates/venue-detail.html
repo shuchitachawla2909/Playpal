@@ -4,7 +4,131 @@
     <title th:text="${venue.venuename} + ' Details'">Venue Details</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Review Section Styles */
+        .reviews-section {
+            margin-top: 60px;
+            padding: 40px 0;
+            background-color: var(--light-bg);
+            border-radius: var(--border-radius);
+        }
 
+        .review-form-container {
+            background-color: var(--white);
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 40px;
+        }
+
+        .star-rating {
+            display: flex;
+            gap: 10px;
+            font-size: 2rem;
+            margin: 20px 0;
+            justify-content: center;
+        }
+
+        .star {
+            color: #ddd;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .star:hover,
+        .star.active {
+            color: var(--secondary-color);
+        }
+
+        .review-textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .reviews-list {
+            margin-top: 30px;
+        }
+
+        .review-card {
+            background-color: var(--white);
+            padding: 25px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 20px;
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--light-bg);
+            padding-bottom: 10px;
+        }
+
+        .reviewer-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .reviewer-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .review-stars {
+            color: var(--secondary-color);
+        }
+
+        .review-date {
+            color: var(--text-color);
+            font-size: 0.9rem;
+        }
+
+        .review-comment {
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .no-reviews {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-color);
+        }
+
+        .error-message {
+            background-color: #ffe6e6;
+            color: #c00;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .success-message {
+            background-color: #e6ffe6;
+            color: #060;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            display: none;
+        }
+    </style>
 </head>
 <body>
 <nav class="navbar">
@@ -20,33 +144,24 @@
             <a th:href="@{/about}" class="nav-link">About</a>
             <a th:href="@{/contact}" class="nav-link">Contact</a>
             <div class="nav-auth" id="nav-auth">
-                <!-- When authenticated, show profile + logout -->
                 <div sec:authorize="isAuthenticated()" class="mydiv">
-
                     <a sec:authorize="hasRole('USER')" th:href="@{/profile}" class="nav-link">
                         <img th:src="${currentUser.profilePictureUrl != null} ? ${currentUser.profilePictureUrl} : @{/images/default-avatar.jpeg}"
                              alt="Profile" class="nav-avatar">
                     </a>
-
                     <a sec:authorize="hasRole('MANAGER')" th:href="@{/manager/profile}" class="nav-link">
                         <img th:src="@{/images/default-avatar.jpeg}" alt="Manager Profile" class="nav-avatar">
                     </a>
-
                     <form th:action="@{/logout}" method="post" style="display:inline-block">
                         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                        <button type="submit" class="nav-link logout-btn">
-                            Logout
-                        </button>
+                        <button type="submit" class="nav-link logout-btn">Logout</button>
                     </form>
                 </div>
-
-                <!-- when not authenticated show login/signup -->
                 <div th:unless="${authenticated}">
                     <a th:href="@{/login}" class="nav-link login-btn">Login</a>
                     <a th:href="@{/signup}" class="signup-link signup-btn active">Sign Up</a>
                 </div>
             </div>
-
         </div>
         <div class="nav-hamburger" id="nav-hamburger">
             <span></span>
@@ -63,7 +178,6 @@
         <img th:src="${venue.venueImageUrl != null ? venue.venueImageUrl : '/images/about-team.jpg'}"
              alt="Venue Image" class="venue-main-image">
 
-
         <div class="venue-info-grid">
             <div class="venue-info-card">
                 <h2>Details</h2>
@@ -73,7 +187,7 @@
                 </p>
                 <p>
                     <strong><i class="fas fa-star"></i> Rating:</strong>
-                    <span th:text="${venue.rating != null} ? ${venue.rating} : 'New Venue'">4.5</span>
+                    <span id="venue-rating" th:text="${venue.rating != null} ? ${venue.rating} : 'New Venue'">4.5</span>
                 </p>
             </div>
             <div class="venue-info-card">
@@ -96,13 +210,68 @@
             <a th:href="@{/venues/{venueId}/book/{courtId}(venueId=${venue.id}, courtId=${court.id})}"
                class="court-card card"
                th:each="court : ${venue.courts}">
-
                 <img th:src="${court.sportImageUrl}" th:alt="${court.courtname} + ' Image'">
                 <div class="card-body">
                     <h4 th:text="${court.courtname}">Sport Name</h4>
                     <span class="cta-btn small-btn">Book Now</span>
                 </div>
             </a>
+        </div>
+
+        <!-- Reviews Section -->
+        <div class="reviews-section">
+            <div class="container">
+                <h2 class="section-subtitle">Reviews & Ratings</h2>
+
+                <!-- Review Form (Only for authenticated users) -->
+                <div sec:authorize="hasRole('USER')" class="review-form-container">
+                    <h3>Share Your Experience</h3>
+
+                    <div class="error-message" id="error-message"></div>
+                    <div class="success-message" id="success-message">Review submitted successfully!</div>
+
+                    <form id="review-form">
+                        <input type="hidden" id="venue-id" th:value="${venue.id}">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+                        <div class="form-group">
+                            <label>Your Rating:</label>
+                            <div class="star-rating" id="star-rating">
+                                <i class="fas fa-star star" data-rating="1"></i>
+                                <i class="fas fa-star star" data-rating="2"></i>
+                                <i class="fas fa-star star" data-rating="3"></i>
+                                <i class="fas fa-star star" data-rating="4"></i>
+                                <i class="fas fa-star star" data-rating="5"></i>
+                            </div>
+                            <input type="hidden" id="rating-input" name="rating" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="comment">Your Review:</label>
+                            <textarea id="comment" name="comment" class="review-textarea"
+                                      placeholder="Tell us about your experience (minimum 10 characters)..."
+                                      required minlength="10" maxlength="1000"></textarea>
+                        </div>
+
+                        <button type="submit" class="submit-btn">
+                            <span class="btn-text">Submit Review</span>
+                            <span class="btn-loader"><i class="fas fa-spinner fa-spin"></i></span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Login prompt for non-authenticated users -->
+                <div th:unless="${authenticated}" class="review-form-container">
+                    <p style="text-align: center;">
+                        <a th:href="@{/login}" class="cta-btn">Login to Write a Review</a>
+                    </p>
+                </div>
+
+                <!-- Reviews List -->
+                <div class="reviews-list" id="reviews-list">
+                    <!-- Reviews will be loaded here dynamically -->
+                </div>
+            </div>
         </div>
     </div>
 </section>
@@ -118,6 +287,192 @@
         </div>
     </div>
 </footer>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const venueId = /*[[${venue.id}]]*/ 0;
+    const csrfToken = /*[[${_csrf.token}]]*/ '';
+    const csrfHeader = /*[[${_csrf.headerName}]]*/ '';
+    /*]]>*/
+
+    let selectedRating = 0;
+
+    // Star rating functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const stars = document.querySelectorAll('.star');
+        const ratingInput = document.getElementById('rating-input');
+
+        stars.forEach(star => {
+            star.addEventListener('click', function() {
+                selectedRating = parseInt(this.getAttribute('data-rating'));
+                ratingInput.value = selectedRating;
+                updateStars();
+            });
+
+            star.addEventListener('mouseenter', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                highlightStars(rating);
+            });
+        });
+
+        document.getElementById('star-rating').addEventListener('mouseleave', function() {
+            updateStars();
+        });
+
+        function highlightStars(rating) {
+            stars.forEach(star => {
+                const starRating = parseInt(star.getAttribute('data-rating'));
+                if (starRating <= rating) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
+        }
+
+        function updateStars() {
+            highlightStars(selectedRating);
+        }
+
+        // Load existing reviews
+        loadReviews();
+
+        // Handle review form submission
+        const reviewForm = document.getElementById('review-form');
+        if (reviewForm) {
+            reviewForm.addEventListener('submit', handleReviewSubmit);
+        }
+    });
+
+    async function loadReviews() {
+        try {
+            const response = await fetch(`/api/reviews/by-venue/${venueId}`);
+            const reviews = await response.json();
+
+            const reviewsList = document.getElementById('reviews-list');
+
+            if (reviews.length === 0) {
+                reviewsList.innerHTML = '<div class="no-reviews"><i class="fas fa-comment-slash" style="font-size: 3rem; color: #ccc; margin-bottom: 20px;"></i><p>No reviews yet. Be the first to review!</p></div>';
+                return;
+            }
+
+            reviewsList.innerHTML = reviews.map(review => `
+                <div class="review-card">
+                    <div class="review-header">
+                        <div class="reviewer-info">
+                            <div class="reviewer-avatar">${review.userName.charAt(0).toUpperCase()}</div>
+                            <div>
+                                <strong>${review.userName}</strong>
+                                <div class="review-stars">
+                                    ${'<i class="fas fa-star"></i>'.repeat(review.rating)}
+                                    ${'<i class="far fa-star"></i>'.repeat(5 - review.rating)}
+                                </div>
+                            </div>
+                        </div>
+                        <span class="review-date">${formatDate(review.createdAt)}</span>
+                    </div>
+                    <p class="review-comment">${escapeHtml(review.comment)}</p>
+                </div>
+            `).join('');
+
+        } catch (error) {
+            console.error('Error loading reviews:', error);
+        }
+    }
+
+    async function handleReviewSubmit(e) {
+        e.preventDefault();
+
+        const submitBtn = e.target.querySelector('.submit-btn');
+        const errorMessage = document.getElementById('error-message');
+        const successMessage = document.getElementById('success-message');
+
+        errorMessage.style.display = 'none';
+        successMessage.style.display = 'none';
+
+        if (selectedRating === 0) {
+            errorMessage.textContent = 'Please select a rating';
+            errorMessage.style.display = 'block';
+            return;
+        }
+
+        const comment = document.getElementById('comment').value.trim();
+
+        if (comment.length < 10) {
+            errorMessage.textContent = 'Review must be at least 10 characters long';
+            errorMessage.style.display = 'block';
+            return;
+        }
+
+        submitBtn.classList.add('loading');
+
+        try {
+            const response = await fetch('/api/reviews', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    [csrfHeader]: csrfToken
+                },
+                body: JSON.stringify({
+                    venueId: venueId,
+                    rating: selectedRating,
+                    comment: comment
+                })
+            });
+
+            if (response.ok) {
+                successMessage.style.display = 'block';
+                document.getElementById('review-form').reset();
+                selectedRating = 0;
+                document.querySelectorAll('.star').forEach(s => s.classList.remove('active'));
+
+                // Reload reviews and update venue rating
+                await loadReviews();
+                await updateVenueRating();
+
+                setTimeout(() => {
+                    successMessage.style.display = 'none';
+                }, 3000);
+            } else {
+                const error = await response.json();
+                errorMessage.textContent = error.message || 'Failed to submit review. You may have already reviewed this venue.';
+                errorMessage.style.display = 'block';
+            }
+        } catch (error) {
+            console.error('Error submitting review:', error);
+            errorMessage.textContent = 'An error occurred. Please try again.';
+            errorMessage.style.display = 'block';
+        } finally {
+            submitBtn.classList.remove('loading');
+        }
+    }
+
+    async function updateVenueRating() {
+        try {
+            const response = await fetch(`/api/reviews/by-venue/${venueId}`);
+            const reviews = await response.json();
+
+            if (reviews.length > 0) {
+                const avgRating = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
+                document.getElementById('venue-rating').textContent = avgRating.toFixed(1);
+            }
+        } catch (error) {
+            console.error('Error updating venue rating:', error);
+        }
+    }
+
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        const options = { year: 'numeric', month: 'short', day: 'numeric' };
+        return date.toLocaleDateString('en-US', options);
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+</script>
 
 </body>
 </html>

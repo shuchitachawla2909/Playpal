@@ -22,6 +22,7 @@ public class VenueController {
         this.venueService = venueService;
     }
 
+
     @GetMapping("/venues")
     public String showVenuesPage(Model model) {
         List<VenueDto> venues = venueService.listAllVenues();
@@ -38,4 +39,6 @@ public class VenueController {
             return ResponseEntity.ok(venueService.listByCity(null));
         }
     }
+
+
 }
