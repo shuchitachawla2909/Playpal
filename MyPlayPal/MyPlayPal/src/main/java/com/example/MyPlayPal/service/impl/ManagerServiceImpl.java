@@ -7,6 +7,9 @@ import com.example.MyPlayPal.model.Manager;
 import com.example.MyPlayPal.repository.ManagerRepository;
 import com.example.MyPlayPal.service.ManagerService;
 import jakarta.validation.Valid;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,5 +58,23 @@ public class ManagerServiceImpl implements ManagerService {
                         .contact(m.getContact()).email(m.getEmail()).build())
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public Manager getLoggedInManager() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        System.out.println("Authentication object: " + auth);
+        if (auth == null || !auth.isAuthenticated()) {
+            System.out.println("No authentication or not authenticated");
+            return null;
+        }
+        System.out.println("Auth name: " + auth.getName());
+        System.out.println("Auth roles: " + auth.getAuthorities());
+
+        String managername = auth.getName().trim();
+        return repo.findByManagername(managername)
+                .orElseThrow(() -> new RuntimeException("Logged-in manager not found"));
+    }
+
+
 }
 

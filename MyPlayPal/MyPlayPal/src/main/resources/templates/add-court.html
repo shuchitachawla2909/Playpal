@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Court</title>
+    <link rel="stylesheet" th:href="@{/css/style2.css}">
+</head>
+<body id="add-court-page">
+
+<header class="add-court-header">
+    <h1 class="add-court-title">
+        Add Court to <span th:text="${venue.venuename}">Venue Name</span>
+    </h1>
+    <nav class="add-court-nav">
+        <a th:href="@{/manager/dashboard}" class="nav-link">Dashboard</a>
+        <a th:href="@{/logout}" class="nav-link">Logout</a>
+    </nav>
+</header>
+
+<main class="add-court-main">
+    <form class="add-court-form"
+          th:action="@{/manager/venues/{venueId}/add-court(venueId=${venue.id})}"
+          th:object="${courtRequest}" method="post">
+
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+        <div class="form-group">
+            <label for="courtname">Court Name:</label>
+            <input id="courtname" type="text" th:field="*{courtname}" placeholder="Enter court name" required>
+        </div>
+
+        <div class="form-group">
+            <label for="sport">Sport:</label>
+            <select id="sport" th:field="*{sportId}" required>
+                <option th:each="sport : ${sports}" th:value="${sport.id}" th:text="${sport.sportname}"></option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="rate">Hourly Rate:</label>
+            <input id="rate" type="number" th:field="*{hourlyRate}" step="0.01" placeholder="Enter rate per hour" required>
+        </div>
+
+        <div class="form-group checkbox-group">
+            <label for="bookable" class="checkbox-label">
+                <input id="bookable" type="checkbox" th:field="*{isBookable}" checked> Bookable
+            </label>
+        </div>
+
+        <button type="submit" class="add-court-btn">Add Court</button>
+    </form>
+</main>
+
+</body>
+</html>
+

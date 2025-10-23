@@ -1,0 +1,585 @@
+
+/* ===== Venue Cards Grid ===== */
+.venues-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    padding: 2rem;
+    justify-items: center;
+}
+
+/* ===== Individual Venue Card ===== */
+.venue-card {
+    background-color: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    width: 100%;
+    max-width: 340px;
+    text-align: center;
+    padding-bottom: 1.5rem;
+    border: 1px solid #eaeaea;
+}
+
+.venue-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
+}
+
+/* ===== Venue Image ===== */
+.venue-img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+}
+
+/* ===== Text Styling ===== */
+.venue-card h3 {
+    font-size: 1.3rem;
+    margin: 1rem 0 0.5rem;
+    color: #222;
+}
+
+.venue-card p {
+    color: #555;
+    margin: 0.3rem 0;
+    font-size: 0.95rem;
+}
+
+/* ===== Buttons ===== */
+.btn {
+    display: inline-block;
+    background-color: #007bff;
+    color: white;
+    padding: 0.5rem 1.2rem;
+    margin: 0.4rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.btn:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+    .venues-grid {
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+
+    .venue-card {
+        max-width: 100%;
+    }
+}
+
+
+/* MANAGER DASHBOARD STYLING */
+
+/* ===== Header Section ===== */
+.dashboard-header {
+    background-color: #ffffff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    padding: 1.2rem 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* ===== Welcome Text ===== */
+.dashboard-header h1 {
+    font-size: 1.5rem;
+    color: #222;
+    margin: 0;
+}
+
+.manager-name {
+    color: #007bff;
+    font-weight: 600;
+}
+
+/* ===== Navigation ===== */
+.header-nav {
+    display: flex;
+    gap: 1rem;
+}
+
+.nav-link {
+    color: #333;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.nav-link:hover {
+    background-color: #007bff;
+    color: #fff;
+}
+
+.logout-link {
+    background-color: #ff4d4d;
+    color: #fff;
+    font-weight: 600;
+}
+
+.logout-link:hover {
+    background-color: #d93636;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.8rem;
+    }
+
+    .header-nav {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.8rem;
+    }
+}
+
+/* ----- Page Layout ----- */
+#add-court-page {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f6f8;
+    margin: 0;
+    padding: 0;
+}
+
+.add-court-header {
+    background-color: #2c3e50;
+    color: #fff;
+    padding: 20px;
+    text-align: center;
+}
+
+.add-court-title {
+    margin: 0;
+    font-size: 28px;
+}
+
+.add-court-nav {
+    margin-top: 10px;
+}
+
+.add-court-nav .nav-link {
+    color: #ecf0f1;
+    text-decoration: none;
+    margin: 0 10px;
+    font-weight: 500;
+}
+
+.add-court-nav .nav-link:hover {
+    text-decoration: underline;
+}
+
+.add-court-main {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 20px;
+}
+
+/* ----- Form Card ----- */
+.add-court-form {
+    background-color: #fff;
+    padding: 30px 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 500px;
+}
+
+/* ----- Form Elements ----- */
+.form-group {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #34495e;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group select {
+    padding: 10px 12px;
+    border: 1px solid #bdc3c7;
+    border-radius: 6px;
+    font-size: 16px;
+    transition: border-color 0.3s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: #2980b9;
+    outline: none;
+}
+
+/* ----- Checkbox ----- */
+.checkbox-group {
+    display: flex;
+    align-items: center;
+}
+
+.checkbox-label input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+/* ----- Submit Button ----- */
+.add-court-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #2980b9;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.add-court-btn:hover {
+    background-color: #1c5980;
+}
+
+/* ----- Page Layout ----- */
+#add-venue-page {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f6f8;
+    margin: 0;
+    padding: 0;
+}
+
+.add-venue-header {
+    background-color: #2c3e50;
+    color: #fff;
+    padding: 20px;
+    text-align: center;
+}
+
+.add-venue-title {
+    margin: 0;
+    font-size: 28px;
+}
+
+.add-venue-nav {
+    margin-top: 10px;
+}
+
+.add-venue-nav .nav-link {
+    color: #ecf0f1;
+    text-decoration: none;
+    margin: 0 10px;
+    font-weight: 500;
+}
+
+.add-venue-nav .nav-link:hover {
+    text-decoration: underline;
+}
+
+.add-venue-main {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 20px;
+}
+
+/* ----- Form Card ----- */
+.add-venue-form {
+    background-color: #fff;
+    padding: 30px 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 500px;
+}
+
+/* ----- Form Elements ----- */
+.form-group {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #34495e;
+}
+
+.form-group input[type="text"] {
+    padding: 10px 12px;
+    border: 1px solid #bdc3c7;
+    border-radius: 6px;
+    font-size: 16px;
+    transition: border-color 0.3s;
+}
+
+.form-group input:focus {
+    border-color: #2980b9;
+    outline: none;
+}
+
+/* ----- Submit Button ----- */
+.add-venue-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #2980b9;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.add-venue-btn:hover {
+    background-color: #1c5980;
+}
+
+/* Make the logout button look like a normal nav link */
+.logout-form {
+    display: inline; /* keep it inline with other links */
+    margin-left: 10px;
+}
+
+.logout-form .logout-link {
+    background: none;
+    border: none;
+    color: #007BFF;       /* link color */
+    cursor: pointer;
+    font-size: 1rem;
+    text-decoration: none;
+    padding: 0;
+    font-family: inherit;
+    background-color:
+}
+
+.logout-form .logout-link:hover {
+    text-decoration: underline;
+    color: #0056b3;        /* darker on hover */
+}
+
+
+
+
+
+/* MANAGER-VENUE-DETAILS PAGE STYLING */
+
+/* General Page */
+#manager-venue-page {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 20px;
+    background-color: #2c3e50;
+    color: #333;
+}
+
+/* Header */
+.venue-header {
+    margin-bottom: 25px;
+    background-color: #2c3e50;
+}
+
+.venue-header h1 {
+    font-size: 28px;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 5px;
+}
+
+.venue-header nav a {
+    text-decoration: none;
+    color: #3498db;
+    margin-right: 15px;
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+.venue-header nav a:hover {
+    color: #2c3e50;
+}
+
+/* Sections */
+.venue-overview, .venue-courts, .venue-reviews {
+    background-color: #ffffff;
+    padding: 20px;
+    margin-bottom: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* Section Titles */
+.venue-overview h2, .venue-courts h2, .venue-reviews h2 {
+    margin-bottom: 15px;
+    color: #34495e;
+    font-size: 22px;
+    border-bottom: 2px solid #3498db;
+    display: inline-block;
+    padding-bottom: 4px;
+}
+
+/* Labels and Inputs */
+.venue-overview label, .venue-courts label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 10px;
+}
+
+.venue-overview input, .venue-overview select,
+.venue-courts input, .venue-courts select {
+    padding: 8px 10px;
+    width: 98%;
+    margin-top: 4px;
+    margin-bottom: 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.venue-overview input:focus,
+.venue-overview select:focus,
+.venue-courts input:focus,
+.venue-courts select:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 6px rgba(52, 152, 219, 0.3);
+    outline: none;
+}
+
+.court-cards-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 50px; /* space between cards */
+    justify-content: flex-start; /* align cards to start */
+}
+
+.court-card {
+    width: 20%; /* each card takes 30% of the container */
+    min-width: 250px; /* ensures it doesn't get too small on mobile */
+    background-color: #f5f5f5;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.court-card form label {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.court-card form input[type="text"],
+.court-card form input[type="number"],
+.court-card form select {
+    width: 100%;
+    padding: 6px 8px;
+    margin-top: 2px;
+    margin-bottom: 2px
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.court-card form input[type="checkbox"] {
+    margin-left: 5px;
+}
+
+.court-card form .btn {
+    margin-top: 10px;
+    padding: 6px 12px;
+    background-color: #1976d2;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.court-card form .btn:hover {
+    background-color: #125aa1;
+}
+
+
+/* Buttons */
+.btn {
+    background-color: #3498db;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 14px;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.btn:hover {
+    background-color: #2980b9;
+    transform: translateY(-1px);
+}
+
+.btn-delete {
+    background-color: #e74c3c;
+}
+
+.btn-delete:hover {
+    background-color: #c0392b;
+}
+
+/* Reviews Table */
+.venue-reviews table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.venue-reviews th, .venue-reviews td {
+    border: 1px solid #ddd;
+    padding: 10px 12px;
+    text-align: left;
+}
+
+.venue-reviews th {
+    background-color: #3498db;
+    color: #fff;
+    font-weight: 600;
+}
+
+.venue-reviews tr:nth-child(even) {
+    background-color: #f2f6f8;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .venue-overview input, .venue-overview select,
+    .venue-courts input, .venue-courts select {
+        width: 100%;
+    }
+
+    .venue-header nav a {
+        display: block;
+        margin-bottom: 8px;
+    }
+}

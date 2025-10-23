@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Manager Dashboard</title>
+    <link rel="stylesheet" th:href="@{/css/style2.css}">
+</head>
+<body>
+<header class="dashboard-header">
+    <div class="header-content">
+        <h1>Welcome,
+            <span th:text="${currentManager != null ? currentManager.managername : 'Guest Manager'}"
+                  class="manager-name">Manager Name</span>
+        </h1>
+        <nav class="header-nav">
+            <a th:href="@{/manager/dashboard}" class="nav-link">Dashboard</a>
+            <a th:href="@{/manager/add-venue}" class="nav-link">Add Venue</a>
+            <!-- Logout form -->
+            <form th:action="@{/logout}" method="post" class="logout-form">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <button type="submit" class="nav-link">Logout</button>
+            </form>
+
+        </nav>
+    </div>
+</header>
+
+<main>
+    <h2>Your Venues</h2>
+    <div class="venues-grid">
+        <div class="venue-card" th:each="venue : ${venues}">
+            <img th:src="${venue.venueImageUrl}" alt="Venue Image" class="venue-img">
+            <h3 th:text="${venue.venuename}">Venue Name</h3>
+            <p th:text="${venue.city + ', ' + venue.state}">City, State</p>
+            <p>Rating: <span th:text="${venue.rating}">0</span></p>
+            <a th:href="@{/manager/venues/{id}/add-court(id=${venue.id})}" class="btn">Add Court</a>
+            <a th:href="@{/manager/venues/{id}(id=${venue.id})}" class="btn">View Details</a>
+        </div>
+    </div>
+</main>
+</body>
+</html>

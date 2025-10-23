@@ -18,14 +18,16 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserDetailsServiceImpl userDetailsServiceImpl;
+    private final CustomAuthSuccessHandler customAuthSuccessHandler; // Inject handler
 
     public SecurityConfig(UserDetailsServiceImpl userDetailsServiceImpl,
-                          JwtAuthenticationFilter jwtAuthenticationFilter) {
+                          JwtAuthenticationFilter jwtAuthenticationFilter,
+                          CustomAuthSuccessHandler customAuthSuccessHandler) {
         this.userDetailsServiceImpl = userDetailsServiceImpl;
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.customAuthSuccessHandler = customAuthSuccessHandler;
     }
 
-    // Password encoder bean
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -39,19 +41,17 @@ public class SecurityConfig {
         return provider;
     }
 
-
-    // Expose AuthenticationManager to inject elsewhere if needed
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
-    // Main security filter chain
     @Bean
     public SecurityFilterChain securityFilterChain(org.springframework.security.config.annotation.web.builders.HttpSecurity http) throws Exception {
         http
-                // Authentication will use your UserDetailsServiceImpl and PasswordEncoder automatically
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/manager/**").hasRole("MANAGER")
+                        .requestMatchers("/user/**").hasRole("USER")
                         .requestMatchers(
                                 "/", "/index", "/about", "/contact", "/venues",
                                 "/games", "/signup", "/login", "/css/**", "/js/**", "/images/**",
@@ -61,22 +61,25 @@ public class SecurityConfig {
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .defaultSuccessUrl("/index", true)
+                        .successHandler(customAuthSuccessHandler) // ✅ Use custom handler
                         .permitAll()
                 )
                 .logout(logout -> logout
-                        .logoutUrl("/logout")
-                        .logoutSuccessUrl("/login?logout")
+                        .logoutUrl("/logout")                  // URL triggered by logout
+                        .logoutSuccessUrl("/login?logout")     // Redirect after logout
+                        .invalidateHttpSession(true)           // Invalidate session
+                        .deleteCookies("JSESSIONID")           // Remove session cookie
+                        .permitAll()
                 );
 
         http.authenticationProvider(authenticationProvider());
 
-        // Add your JWT filter if used
 //        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 }
+
 
 
 

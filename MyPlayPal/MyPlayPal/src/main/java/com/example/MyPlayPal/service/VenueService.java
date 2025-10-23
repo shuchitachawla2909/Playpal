@@ -1,8 +1,6 @@
 package com.example.MyPlayPal.service;
 
-import com.example.MyPlayPal.dto.CourtDto;
-import com.example.MyPlayPal.dto.CreateVenueRequest;
-import com.example.MyPlayPal.dto.VenueDto;
+import com.example.MyPlayPal.dto.*;
 
 import java.util.List;
 
@@ -13,5 +11,13 @@ public interface VenueService {
     List<VenueDto> listAllVenues();
 
     CourtDto getCourtById(Long courtId);
+
+    List<VenueDto> listVenuesForCurrentManager();  // Show only venues of logged-in manager
+    void addCourtToVenue(Long venueId, CreateCourtRequest request);
+    List<SportDto> getAllSports();
+
+    VenueDto updateVenue(Long venueId, VenueDto updatedVenue);
+    void deleteVenue(Long venueId);
+    void updateCourt(Long courtId, CourtDto updatedCourt);
 }
 

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Venue</title>
+    <link rel="stylesheet" th:href="@{/css/style2.css}">
+</head>
+<body id="add-venue-page">
+
+<header class="add-venue-header">
+    <h1 class="add-venue-title">Add New Venue</h1>
+    <nav class="add-venue-nav">
+        <a th:href="@{/manager/dashboard}" class="nav-link">Dashboard</a>
+        <a th:href="@{/logout}" class="nav-link">Logout</a>
+    </nav>
+</header>
+
+<main class="add-venue-main">
+    <form class="add-venue-form"
+          th:action="@{/manager/add-venue}" th:object="${venueRequest}" method="post">
+
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+        <div class="form-group">
+            <label for="venuename">Venue Name:</label>
+            <input id="venuename" type="text" th:field="*{venuename}" placeholder="Enter venue name" required>
+        </div>
+
+        <div class="form-group">
+            <label for="street">Street:</label>
+            <input id="street" type="text" th:field="*{street}" placeholder="Enter street" required>
+        </div>
+
+        <div class="form-group">
+            <label for="city">City:</label>
+            <input id="city" type="text" th:field="*{city}" placeholder="Enter city" required>
+        </div>
+
+        <div class="form-group">
+            <label for="state">State:</label>
+            <input id="state" type="text" th:field="*{state}" placeholder="Enter state" required>
+        </div>
+
+        <div class="form-group">
+            <label for="pincode">Pincode:</label>
+            <input id="pincode" type="text" th:field="*{pincode}" placeholder="Enter pincode" required>
+        </div>
+
+        <div class="form-group">
+            <label for="venueImageUrl">Venue Image URL:</label>
+            <input id="venueImageUrl" type="text" th:field="*{venueImageUrl}" placeholder="Enter image URL">
+        </div>
+
+        <button type="submit" class="add-venue-btn">Create Venue</button>
+    </form>
+</main>
+
+</body>
+</html>
+

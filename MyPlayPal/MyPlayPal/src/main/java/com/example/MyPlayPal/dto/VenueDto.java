@@ -26,4 +26,7 @@ public class VenueDto {
 
     // ⭐ CRITICAL FIELD for venue-detail.html
     private List<CourtDto> courts;
+
+    private List<ReviewDto> reviews;
+
 }
