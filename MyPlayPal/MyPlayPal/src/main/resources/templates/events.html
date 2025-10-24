@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events - PlayPal</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .create-event-btn-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            padding: 40px 0;
+        }
+        .event-card {
+            background-color: var(--white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 25px;
+            transition: var(--transition);
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        .event-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+            border-color: var(--secondary-color);
+        }
+        .event-card h3 {
+            color: var(--heading-color);
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+        .event-info {
+            margin: 10px 0;
+            color: var(--text-color);
+        }
+        .event-info i {
+            color: var(--secondary-color);
+            margin-right: 8px;
+            width: 20px;
+        }
+        .event-status {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .status-available {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status-full {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .skill-badge {
+            display: inline-block;
+            background-color: var(--light-bg);
+            padding: 5px 10px;
+            border-radius: var(--border-radius);
+            margin-top: 10px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar">
+    <div class="nav-container">
+        <div class="nav-logo">
+            <i class="fas fa-futbol"></i>
+            <span>PlayPal</span>
+        </div>
+        <div class="nav-menu" id="nav-menu">
+            <a th:href="@{/}" class="nav-link">Home</a>
+            <a th:href="@{/venues}" class="nav-link">Book</a>
+            <a th:href="@{/events}" class="nav-link active">Events</a>
+            <a th:href="@{/games}" class="nav-link">Games</a>
+            <a th:href="@{/about}" class="nav-link">About</a>
+            <a th:href="@{/contact}" class="nav-link">Contact</a>
+            <div class="nav-auth" id="nav-auth">
+                <div sec:authorize="isAuthenticated()" class="mydiv">
+                    <a sec:authorize="hasRole('USER')" th:href="@{/profile}" class="nav-link">
+                        <img th:src="${currentUser.profilePictureUrl != null} ? ${currentUser.profilePictureUrl} : @{/images/default-avatar.jpeg}"
+                             alt="Profile" class="nav-avatar">
+                    </a>
+                    <a sec:authorize="hasRole('MANAGER')" th:href="@{/manager/profile}" class="nav-link">
+                        <img th:src="@{/images/default-avatar.jpeg}" alt="Manager Profile" class="nav-avatar">
+                    </a>
+                    <form th:action="@{/logout}" method="post" style="display:inline-block">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <button type="submit" class="nav-link logout-btn">Logout</button>
+                    </form>
+                </div>
+                <div th:unless="${authenticated}">
+                    <a th:href="@{/login}" class="nav-link login-btn">Login</a>
+                    <a th:href="@{/signup}" class="signup-link signup-btn active">Sign Up</a>
+                </div>
+            </div>
+        </div>
+        <div class="nav-hamburger" id="nav-hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+</nav>
+
+<section class="page-header">
+    <div class="container">
+        <h1>Upcoming Events</h1>
+        <p>Join exciting sports events in your area</p>
+    </div>
+</section>
+
+<section class="games-section">
+    <div class="container">
+        <div class="create-event-btn-container" sec:authorize="hasRole('USER')">
+            <a th:href="@{/events/create}" class="cta-btn">
+                <i class="fas fa-plus-circle"></i> Create Event
+            </a>
+        </div>
+
+        <div class="events-grid" th:if="${events != null and !events.isEmpty()}">
+            <div class="event-card" th:each="event : ${events}"
+                 th:onclick="'window.location.href=\'/events/' + ${event.id} + '\''">
+                <h3 th:text="${event.eventName}">Event Name</h3>
+
+                <div class="event-info">
+                    <i class="fas fa-users"></i>
+                    <strong>Players:</strong>
+                    <span th:text="${event.currentPlayers} + '/' + ${event.maxPlayers}">5/10</span>
+                </div>
+
+                <div class="event-info">
+                    <i class="fas fa-trophy"></i>
+                    <strong>Skill Level:</strong>
+                    <span th:text="${event.skillLevelRequired}">Intermediate</span>
+                </div>
+
+                <div class="event-info">
+                    <i class="fas fa-rupee-sign"></i>
+                    <strong>Entry Fee:</strong>
+                    <span th:text="'₹' + ${event.entryFee}">₹200</span>
+                </div>
+
+                <div class="event-info">
+                    <i class="fas fa-user"></i>
+                    <strong>Organizer:</strong>
+                    <span th:text="${event.organizer.username}">Username</span>
+                </div>
+
+                <span class="event-status"
+                      th:classappend="${event.currentPlayers < event.maxPlayers} ? 'status-available' : 'status-full'"
+                      th:text="${event.currentPlayers < event.maxPlayers} ? 'Slots Available' : 'Event Full'">
+                    Slots Available
+                </span>
+            </div>
+        </div>
+
+        <div th:if="${events == null or events.isEmpty()}" class="players-empty">
+            <i class="fas fa-calendar-times" style="font-size: 4rem; color: #ccc; margin-bottom: 20px;"></i>
+            <p>No events available at the moment.</p>
+            <p sec:authorize="hasRole('USER')">Be the first to create one!</p>
+        </div>
+    </div>
+</section>
+
+<footer class="footer">
+    <div class="container">
+        <div class="footer-content">
+            <div class="footer-logo">
+                <i class="fas fa-futbol"></i>
+                <span>PlayPal</span>
+            </div>
+            <p>&copy; 2025 PlayPal. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
+
+</body>
+</html>

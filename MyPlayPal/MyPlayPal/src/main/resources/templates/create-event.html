@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Event - PlayPal</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .create-event-section {
+            padding: 50px 0;
+        }
+        .create-event-container {
+            max-width: 800px;
+            margin: auto;
+        }
+        .venue-info {
+            background-color: var(--light-bg);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 30px;
+        }
+        .event-form-card {
+            background-color: var(--white);
+            padding: 40px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+        .slots-container {
+            margin-top: 20px;
+        }
+        .slot-item {
+            background-color: var(--light-bg);
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: var(--border-radius);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .slot-item button {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .slot-item button:hover {
+            background-color: #c0392b;
+        }
+        .add-slot-btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .add-slot-btn:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar">
+    <div class="nav-container">
+        <div class="nav-logo">
+            <i class="fas fa-futbol"></i>
+            <span>PlayPal</span>
+        </div>
+        <div class="nav-menu" id="nav-menu">
+            <a th:href="@{/}" class="nav-link">Home</a>
+            <a th:href="@{/venues}" class="nav-link">Book</a>
+            <a th:href="@{/events}" class="nav-link active">Events</a>
+            <a th:href="@{/games}" class="nav-link">Games</a>
+            <a th:href="@{/about}" class="nav-link">About</a>
+            <a th:href="@{/contact}" class="nav-link">Contact</a>
+            <div class="nav-auth" id="nav-auth">
+                <div sec:authorize="isAuthenticated()" class="mydiv">
+                    <a sec:authorize="hasRole('USER')" th:href="@{/profile}" class="nav-link">
+                        <img th:src="${currentUser.profilePictureUrl != null} ? ${currentUser.profilePictureUrl} : @{/images/default-avatar.jpeg}"
+                             alt="Profile" class="nav-avatar">
+                    </a>
+                    <a sec:authorize="hasRole('MANAGER')" th:href="@{/manager/profile}" class="nav-link">
+                        <img th:src="@{/images/default-avatar.jpeg}" alt="Manager Profile" class="nav-avatar">
+                    </a>
+                    <form th:action="@{/logout}" method="post" style="display:inline-block">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <button type="submit" class="nav-link logout-btn">Logout</button>
+                    </form>
+                </div>
+                <div th:unless="${authenticated}">
+                    <a th:href="@{/login}" class="nav-link login-btn">Login</a>
+                    <a th:href="@{/signup}" class="signup-link signup-btn active">Sign Up</a>
+                </div>
+            </div>
+        </div>
+        <div class="nav-hamburger" id="nav-hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+</nav>
+
+<section class="page-header">
+    <div class="container">
+        <h1>Create Event</h1>
+        <p th:text="'at ' + ${venue.venuename}">at Venue Name</p>
+    </div>
+</section>
+
+<section class="create-event-section">
+    <div class="container create-event-container">
+        <div class="venue-info">
+            <h3><i class="fas fa-map-marker-alt"></i> <span th:text="${venue.venuename}">Venue Name</span></h3>
+            <p th:text="${venue.street} + ', ' + ${venue.city}">Address</p>
+        </div>
+
+        <div class="event-form-card">
+            <h2>Event Details</h2>
+            <form id="event-form" th:action="@{/api/events}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <input type="hidden" name="venueId" th:value="${venue.id}" />
+
+                <div class="form-group">
+                    <label for="eventName">Event Name: <span style="color: red;">*</span></label>
+                    <input type="text" id="eventName" name="eventName" class="form-control" required
+                           placeholder="e.g., Friday Night Football">
+                </div>
+
+                <div class="form-group">
+                    <label for="maxPlayers">Maximum Players: <span style="color: red;">*</span></label>
+                    <input type="number" id="maxPlayers" name="maxPlayers" class="form-control" min="2" max="50" required
+                           placeholder="e.g., 10">
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description: <span style="color: red;">*</span></label>
+                    <textarea id="description" name="description" class="form-control" rows="4" required
+                              placeholder="Describe your event..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="skillLevelRequired">Skill Level Required: <span style="color: red;">*</span></label>
+                    <select id="skillLevelRequired" name="skillLevelRequired" class="form-control" required>
+                        <option value="">Select Skill Level</option>
+                        <option value="Beginner">Beginner</option>
+                        <option value="Intermediate">Intermediate</option>
+                        <option value="Advanced">Advanced</option>
+                        <option value="All Levels">All Levels</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="entryFee">Entry Fee (₹): <span style="color: red;">*</span></label>
+                    <input type="number" id="entryFee" name="entryFee" class="form-control" min="0" step="0.01" required
+                           placeholder="e.g., 200">
+                </div>
+
+                <div class="form-group">
+                    <label>Select Date & Time Slots: <span style="color: red;">*</span></label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px;">
+                        <div>
+                            <label for="slot-date">Date:</label>
+                            <input type="date" id="slot-date" class="form-control">
+                        </div>
+                        <div>
+                            <label for="slot-time">Time:</label>
+                            <input type="time" id="slot-time" class="form-control">
+                        </div>
+                    </div>
+                    <button type="button" class="add-slot-btn" onclick="addSlot()">
+                        <i class="fas fa-plus"></i> Add Slot
+                    </button>
+                </div>
+
+                <div class="slots-container" id="slots-container">
+                    <p style="color: var(--text-color); font-style: italic;">No slots added yet. Add at least one slot.</p>
+                </div>
+
+                <button type="submit" class="submit-btn" style="width: 100%; margin-top: 20px;">
+                    <span class="btn-text"><i class="fas fa-calendar-plus"></i> Create Event</span>
+                    <span class="btn-loader"><i class="fas fa-spinner fa-spin"></i> Creating...</span>
+                </button>
+            </form>
+
+            <a th:href="@{/events/create}" class="cancel-btn" style="display: block; text-align: center; margin-top: 15px;">
+                <i class="fas fa-arrow-left"></i> Back to Venue Selection
+            </a>
+        </div>
+    </div>
+</section>
+
+<footer class="footer">
+    <div class="container">
+        <div class="footer-content">
+            <div class="footer-logo">
+                <i class="fas fa-futbol"></i>
+                <span>PlayPal</span>
+            </div>
+            <p>&copy; 2025 PlayPal. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
+
+<script th:inline="javascript">
+    const venueId = [[${venue.id}]];
+    const csrfToken = [[${_csrf.token}]];
+
+    let slots = [];
+
+    function addSlot() {
+        const dateInput = document.getElementById('slot-date');
+        const timeInput = document.getElementById('slot-time');
+
+        if (!dateInput.value || !timeInput.value) {
+            alert('Please select both date and time');
+            return;
+        }
+
+        const slotKey = `${dateInput.value}T${timeInput.value}`;
+
+        if (slots.some(s => s.key === slotKey)) {
+            alert('This slot is already added');
+            return;
+        }
+
+        slots.push({
+            key: slotKey,
+            date: dateInput.value,
+            time: timeInput.value,
+            slotId: null
+        });
+
+        renderSlots();
+        dateInput.value = '';
+        timeInput.value = '';
+    }
+
+    function removeSlot(index) {
+        slots.splice(index, 1);
+        renderSlots();
+    }
+
+    function renderSlots() {
+        const container = document.getElementById('slots-container');
+
+        if (slots.length === 0) {
+            container.innerHTML = '<p style="color: var(--text-color); font-style: italic;">No slots added yet. Add at least one slot.</p>';
+            return;
+        }
+
+        container.innerHTML = slots.map((slot, index) => `
+            <div class="slot-item">
+                <span><i class="fas fa-calendar-day"></i> ${formatDate(slot.date)} at ${formatTime(slot.time)}</span>
+                <button type="button" onclick="removeSlot(${index})">
+                    <i class="fas fa-trash"></i> Remove
+                </button>
+            </div>
+        `).join('');
+    }
+
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+
+    function formatTime(timeString) {
+        const [hours, minutes] = timeString.split(':');
+        const hour = parseInt(hours);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const displayHour = hour % 12 || 12;
+        return `${displayHour}:${minutes} ${ampm}`;
+    }
+
+    document.getElementById('event-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        if (slots.length === 0) {
+            alert('Please add at least one time slot for your event');
+            return;
+        }
+
+        const submitBtn = this.querySelector('.submit-btn');
+        submitBtn.classList.add('loading');
+
+        const formData = new FormData(this);
+        const eventData = {
+            eventName: formData.get('eventName'),
+            maxPlayers: parseInt(formData.get('maxPlayers')),
+            description: formData.get('description'),
+            skillLevelRequired: formData.get('skillLevelRequired'),
+            entryFee: parseFloat(formData.get('entryFee')),
+            slotIds: slots.map(s => s.slotId)
+        };
+
+        try {
+            const response = await fetch('/api/events/create-with-venue', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({
+                    ...eventData,
+                    venueId: venueId,
+                    slots: slots
+                })
+            });
+
+            if (response.ok) {
+                const event = await response.json();
+                window.location.href = `/events/${event.id}`;
+            } else {
+                const error = await response.text();
+                alert('Failed to create event: ' + error);
+                submitBtn.classList.remove('loading');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred while creating the event');
+            submitBtn.classList.remove('loading');
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('slot-date').setAttribute('min', today);
+    });
+</script>
+
+</body>
+</html>

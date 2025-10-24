@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Profile - PlayPal</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
 <!-- Navigation -->
@@ -14,8 +15,9 @@
             <span>PlayPal</span>
         </div>
         <div class="nav-menu" id="nav-menu">
-            <a th:href="@{/}" class="nav-link active">Home</a>
+            <a th:href="@{/}" class="nav-link">Home</a>
             <a th:href="@{/venues}" class="nav-link">Book</a>
+            <a th:href="@{/events}" class="nav-link">Events</a>
             <a th:href="@{/games}" class="nav-link">Games</a>
             <a th:href="@{/about}" class="nav-link">About</a>
             <a th:href="@{/contact}" class="nav-link">Contact</a>
@@ -59,18 +61,76 @@
 </nav>
 
 
-<section class="profile-section">  <section> <h2>Your Profile</h2>
-    <div>
-        <img th:src="${user.profilePictureUrl != null} ? ${user.profilePictureUrl} : @{/images/default-avatar.jpeg}" alt="avatar" style="width:80px;height:80px;border-radius:50%;">
+<section class="profile-section">
+    <div class="container" style="max-width: 1000px;">
+        <div style="background-color: var(--white); padding: 40px; border-radius: var(--border-radius); box-shadow: var(--box-shadow); margin-bottom: 40px;">
+            <h2>Your Profile</h2>
+            <div style="text-align: center; margin: 20px 0;">
+                <img th:src="${user.profilePictureUrl != null} ? ${user.profilePictureUrl} : @{/images/default-avatar.jpeg}" alt="avatar" style="width:100px;height:100px;border-radius:50%; border: 3px solid var(--secondary-color); object-fit: cover;">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
+                <p><strong>Username:</strong> <span th:text="${user.username}"></span></p>
+                <p><strong>Email:</strong> <span th:text="${user.email}"></span></p>
+                <p><strong>Contact:</strong> <span th:text="${user.contact}"></span></p>
+                <p><strong>City:</strong> <span th:text="${user.city}"></span></p>
+                <p><strong>State:</strong> <span th:text="${user.state}"></span></p>
+                <p><strong>Age:</strong> <span th:text="${user.age}"></span></p>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+            <div style="background-color: var(--white); padding: 30px; border-radius: var(--border-radius); box-shadow: var(--box-shadow);">
+                <h2 style="color: var(--primary-color); margin-bottom: 20px; border-bottom: 2px solid var(--secondary-color); padding-bottom: 10px;">
+                    <i class="fas fa-calendar-plus"></i> Events Created
+                </h2>
+                <div th:if="${eventsCreated != null and !eventsCreated.isEmpty()}">
+                    <div th:each="event : ${eventsCreated}" style="background-color: var(--light-bg); padding: 15px; margin-bottom: 15px; border-radius: var(--border-radius);">
+                        <h4 style="margin: 0 0 10px 0;">
+                            <a th:href="@{/events/{id}(id=${event.id})}" style="color: var(--heading-color); text-decoration: none;">
+                                <span th:text="${event.eventName}">Event Name</span>
+                            </a>
+                        </h4>
+                        <p style="margin: 5px 0; font-size: 0.9rem; color: var(--text-color);">
+                            <i class="fas fa-users"></i> <span th:text="${event.currentPlayers} + '/' + ${event.maxPlayers}">5/10</span> players
+                        </p>
+                        <p style="margin: 5px 0; font-size: 0.9rem; color: var(--text-color);">
+                            <i class="fas fa-rupee-sign"></i> ₹<span th:text="${event.entryFee}">200</span>
+                        </p>
+                    </div>
+                </div>
+                <p th:if="${eventsCreated == null or eventsCreated.isEmpty()}" style="text-align: center; color: var(--text-color); padding: 20px;">
+                    <i class="fas fa-calendar-times" style="font-size: 2rem; color: #ccc; display: block; margin-bottom: 10px;"></i>
+                    No events created yet.
+                </p>
+            </div>
+
+            <div style="background-color: var(--white); padding: 30px; border-radius: var(--border-radius); box-shadow: var(--box-shadow);">
+                <h2 style="color: var(--primary-color); margin-bottom: 20px; border-bottom: 2px solid var(--secondary-color); padding-bottom: 10px;">
+                    <i class="fas fa-user-check"></i> Events Joined
+                </h2>
+                <div th:if="${eventsJoined != null and !eventsJoined.isEmpty()}">
+                    <div th:each="participant : ${eventsJoined}" style="background-color: var(--light-bg); padding: 15px; margin-bottom: 15px; border-radius: var(--border-radius);">
+                        <h4 style="margin: 0 0 10px 0;">
+                            <a th:href="@{/events/{id}(id=${participant.event.id})}" style="color: var(--heading-color); text-decoration: none;">
+                                <span th:text="${participant.event.eventName}">Event Name</span>
+                            </a>
+                        </h4>
+                        <p style="margin: 5px 0; font-size: 0.9rem; color: var(--text-color);">
+                            <i class="fas fa-user"></i> Organizer: <span th:text="${participant.event.organizer.username}">Username</span>
+                        </p>
+                        <p style="margin: 5px 0; font-size: 0.9rem; color: var(--text-color);">
+                            <i class="fas fa-info-circle"></i> Status: <span th:text="${participant.status}">JOINED</span>
+                        </p>
+                    </div>
+                </div>
+                <p th:if="${eventsJoined == null or eventsJoined.isEmpty()}" style="text-align: center; color: var(--text-color); padding: 20px;">
+                    <i class="fas fa-calendar-times" style="font-size: 2rem; color: #ccc; display: block; margin-bottom: 10px;"></i>
+                    No events joined yet.
+                </p>
+            </div>
+        </div>
     </div>
-    <p><strong>Username:</strong> <span th:text="${user.username}"></span></p>
-    <p><strong>Email:</strong> <span th:text="${user.email}"></span></p>
-    <p><strong>Contact:</strong> <span th:text="${user.contact}"></span></p>
-    <p><strong>City:</strong> <span th:text="${user.city}"></span></p>
-    <p><strong>State:</strong> <span th:text="${user.state}"></span></p>
-    <p><strong>Age:</strong> <span th:text="${user.age}"></span></p>
 </section>
-</section>>
 
 </body>
 </html>
