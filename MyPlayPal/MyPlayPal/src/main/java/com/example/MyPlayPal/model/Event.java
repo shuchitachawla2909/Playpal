@@ -23,7 +23,7 @@ public class Event {
     @Column(nullable = false)
     private String eventName;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name="organizer_user_id")
     private User organizer;
 

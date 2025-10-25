@@ -18,7 +18,7 @@ public class EventParticipant {
     @JoinColumn(name="event_id")
     private Event event;
 
-    @ManyToOne(fetch=FetchType.LAZY)
+    @ManyToOne(fetch=FetchType.EAGER)
     @JoinColumn(name="user_id")
     private User user;
 

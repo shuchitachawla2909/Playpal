@@ -83,4 +83,11 @@ public class EventParticipantServiceImpl implements EventParticipantService {
     public long countParticipantsByStatus(Event event, EventParticipant.ParticipantStatus status) {
         return participantRepository.countByEventAndStatus(event, status);
     }
+
+    @Override
+    public List<EventParticipant> getParticipantsByEventId(Long eventId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("Event not found"));
+        return getParticipantsByEvent(event);
+    }
 }

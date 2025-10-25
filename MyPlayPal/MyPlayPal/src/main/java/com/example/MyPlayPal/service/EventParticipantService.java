@@ -25,4 +25,8 @@ public interface EventParticipantService {
 
     // Count participants by status
     long countParticipantsByStatus(Event event, EventParticipant.ParticipantStatus status);
+
+    // Get all participants by event ID
+    List<EventParticipant> getParticipantsByEventId(Long eventId);
+
 }
