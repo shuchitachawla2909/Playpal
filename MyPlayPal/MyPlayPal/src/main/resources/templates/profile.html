@@ -108,20 +108,23 @@
                 <h2 style="color: var(--primary-color); margin-bottom: 20px; border-bottom: 2px solid var(--secondary-color); padding-bottom: 10px;">
                     <i class="fas fa-user-check"></i> Events Joined
                 </h2>
-                <div th:if="${eventsJoined != null and !eventsJoined.isEmpty()}">
-                    <div th:each="participant : ${eventsJoined}" style="background-color: var(--light-bg); padding: 15px; margin-bottom: 15px; border-radius: var(--border-radius);">
-                        <h4 style="margin: 0 0 10px 0;">
-                            <a th:href="@{/events/{id}(id=${participant.event.id})}" style="color: var(--heading-color); text-decoration: none;">
-                                <span th:text="${participant.event.eventName}">Event Name</span>
-                            </a>
-                        </h4>
-                        <p style="margin: 5px 0; font-size: 0.9rem; color: var(--text-color);">
-                            <i class="fas fa-user"></i> Organizer: <span th:text="${participant.event.organizer.username}">Username</span>
-                        </p>
-                        <p style="margin: 5px 0; font-size: 0.9rem; color: var(--text-color);">
-                            <i class="fas fa-info-circle"></i> Status: <span th:text="${participant.status}">JOINED</span>
-                        </p>
-                    </div>
+                <div th:each="event : ${eventsJoined}" style="background-color: var(--light-bg); padding: 15px; margin-bottom: 15px; border-radius: var(--border-radius);">
+                    <h4 style="margin: 0 0 10px 0;">
+                        <a th:href="@{/events/{id}(id=${event.id})}" style="color: var(--heading-color); text-decoration: none;">
+                            <span th:text="${event.eventName}">Event Name</span>
+                        </a>
+                    </h4>
+                    <p style="margin: 5px 0; font-size: 0.9rem; color: var(--text-color);">
+                        <i class="fas fa-user"></i> Organizer:
+                        <span th:text="${event.organizer.username}">Organizer</span>
+                    </p>
+                    <p style="margin: 5px 0; font-size: 0.9rem; color: var(--text-color);">
+                        <i class="fas fa-users"></i>
+                        <span th:text="${event.currentPlayers} + '/' + ${event.maxPlayers}">5/10</span> players
+                    </p>
+                    <p style="margin: 5px 0; font-size: 0.9rem; color: var(--text-color);">
+                        <i class="fas fa-rupee-sign"></i> ₹<span th:text="${event.entryFee}">200</span>
+                    </p>
                 </div>
                 <p th:if="${eventsJoined == null or eventsJoined.isEmpty()}" style="text-align: center; color: var(--text-color); padding: 20px;">
                     <i class="fas fa-calendar-times" style="font-size: 2rem; color: #ccc; display: block; margin-bottom: 10px;"></i>

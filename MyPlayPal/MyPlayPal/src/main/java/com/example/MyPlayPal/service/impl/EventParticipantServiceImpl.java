@@ -90,4 +90,10 @@ public class EventParticipantServiceImpl implements EventParticipantService {
                 .orElseThrow(() -> new RuntimeException("Event not found"));
         return getParticipantsByEvent(event);
     }
+
+    @Override
+    public List<Event> getEventsJoinedByUser(User user) {
+        return participantRepository.findEventsJoinedByUser(user);
+    }
+
 }

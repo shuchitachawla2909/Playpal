@@ -29,4 +29,6 @@ public interface EventParticipantService {
     // Get all participants by event ID
     List<EventParticipant> getParticipantsByEventId(Long eventId);
 
+    List<Event> getEventsJoinedByUser(User user);
+
 }

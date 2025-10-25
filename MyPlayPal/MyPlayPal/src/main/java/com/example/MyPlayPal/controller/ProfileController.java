@@ -38,7 +38,7 @@ public class ProfileController {
         user.setPassword(null);
 
         List<Event> eventsCreated = eventService.getEventsByOrganizer(user);
-        List<EventParticipant> eventsJoined = participantService.getEventsByUser(user);
+        List<Event> eventsJoined = participantService.getEventsJoinedByUser(user);
 
         model.addAttribute("user", user);
         model.addAttribute("eventsCreated", eventsCreated);
