@@ -1,10 +1,65 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8">
+    <title>Create Slot Template</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+        }
+        form {
+            width: 400px;
+            margin: auto;
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+        label { display: block; margin-top: 10px; }
+        button {
+            margin-top: 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .msg { margin-top: 15px; color: green; }
+        .error { margin-top: 15px; color: red; }
+    </style>
 </head>
 <body>
-$END$
+<h2 style="text-align:center;">Create Slot Template for <span th:text="${court.courtname}"></span></h2>
+
+<form th:action="@{/manager/slots/create-template}" method="post" th:object="${request}">
+    <!-- Hidden field for courtId -->
+    <input type="hidden" th:field="*{courtId}" th:value="${court.id}" />
+
+    <label>Start Date:</label>
+    <input type="date" th:field="*{startDate}" required>
+
+    <label>End Date:</label>
+    <input type="date" th:field="*{endDate}" required>
+
+    <label>Start Time:</label>
+    <input type="time" th:field="*{startTime}" required>
+
+    <label>End Time:</label>
+    <input type="time" th:field="*{endTime}" required>
+
+    <label>Slot Duration (minutes):</label>
+    <input type="number" th:field="*{slotDurationMinutes}" min="10" required>
+
+    <button type="submit">Generate Slots</button>
+</form>
+
+<p class="msg" th:if="${success}" th:text="${success}"></p>
+<p class="error" th:if="${error}" th:text="${error}"></p>
+
 </body>
 </html>

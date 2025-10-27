@@ -53,6 +53,11 @@
                     <label>Bookable: <input type="checkbox" name="isBookable" th:checked="${court.isBookable}"></label>
                     <button type="submit" class="btn">Update Court</button>
                 </form>
+                <a th:href="@{/manager/slots/create-template/{courtId}(courtId=${court.id})}"
+                   class="btn btn-secondary">
+                    Create Slots
+                </a>
+
             </div>
         </div>
     </section>
