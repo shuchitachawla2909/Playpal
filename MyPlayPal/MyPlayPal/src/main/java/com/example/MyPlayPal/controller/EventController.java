@@ -1,5 +1,7 @@
 package com.example.MyPlayPal.controller;
 
+import com.example.MyPlayPal.dto.EventResponse;
+import com.example.MyPlayPal.mapper.EventMapper;
 import com.example.MyPlayPal.model.CourtSlot;
 import com.example.MyPlayPal.model.Event;
 import com.example.MyPlayPal.model.User;
@@ -12,7 +14,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -25,9 +26,11 @@ public class EventController {
     private final EventService eventService;
     private final UserRepository userRepository;
     private final CourtSlotRepository courtSlotRepository;
+    private final EventMapper eventMapper; // ✅ Inject mapper
 
+    // ✅ CREATE EVENT WITH VENUE
     @PostMapping("/create-with-venue")
-    public Event createEventWithVenue(@RequestBody Map<String, Object> request) {
+    public EventResponse createEventWithVenue(@RequestBody Map<String, Object> request) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
         User organizer = userRepository.findByUsername(username)
@@ -59,11 +62,13 @@ public class EventController {
                 .status(Event.EventStatus.PENDING)
                 .build();
 
-        return eventService.createEvent(event);
+        Event savedEvent = eventService.createEvent(event);
+        return eventMapper.toEventResponse(savedEvent); // ✅ Use instance method
     }
 
+    // ✅ CREATE BASIC EVENT
     @PostMapping
-    public Event createEvent(@RequestBody Map<String, Object> request) {
+    public EventResponse createEvent(@RequestBody Map<String, Object> request) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
         User organizer = userRepository.findByUsername(username)
@@ -79,32 +84,45 @@ public class EventController {
         }
         event.setOrganizer(organizer);
 
-        return eventService.createEvent(event);
+        Event savedEvent = eventService.createEvent(event);
+        return eventMapper.toEventResponse(savedEvent); // ✅
     }
 
+    // ✅ GET EVENT BY ID
     @GetMapping("/{id}")
-    public Event getEvent(@PathVariable Long id) {
-        return eventService.getEventById(id)
+    public EventResponse getEvent(@PathVariable Long id) {
+        Event event = eventService.getEventById(id)
                 .orElseThrow(() -> new RuntimeException("Event not found"));
+        return eventMapper.toEventResponse(event);
     }
 
+    // ✅ GET ALL EVENTS
     @GetMapping
-    public List<Event> getAllEvents() {
-        return eventService.getAllEvents();
+    public List<EventResponse> getAllEvents() {
+        return eventService.getAllEvents().stream()
+                .map(eventMapper::toEventResponse)
+                .collect(Collectors.toList());
     }
 
+    // ✅ GET EVENTS BY ORGANIZER
     @GetMapping("/organizer/{organizerId}")
-    public List<Event> getEventsByOrganizer(@PathVariable Long organizerId) {
+    public List<EventResponse> getEventsByOrganizer(@PathVariable Long organizerId) {
         User organizer = userRepository.findById(organizerId)
                 .orElseThrow(() -> new RuntimeException("Organizer not found"));
-        return eventService.getEventsByOrganizer(organizer);
+        return eventService.getEventsByOrganizer(organizer).stream()
+                .map(eventMapper::toEventResponse)
+                .collect(Collectors.toList());
     }
 
+    // ✅ SEARCH EVENTS BY NAME
     @GetMapping("/search")
-    public List<Event> searchEvents(@RequestParam String name) {
-        return eventService.searchEventsByName(name);
+    public List<EventResponse> searchEvents(@RequestParam String name) {
+        return eventService.searchEventsByName(name).stream()
+                .map(eventMapper::toEventResponse)
+                .collect(Collectors.toList());
     }
 
+    // ✅ CANCEL EVENT
     @PostMapping("/{id}/cancel")
     public void cancelEvent(@PathVariable Long id) {
         eventService.cancelEvent(id);

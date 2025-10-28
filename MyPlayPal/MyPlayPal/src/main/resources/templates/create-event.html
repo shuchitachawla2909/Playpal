@@ -280,7 +280,7 @@
 
     async function loadSlots() {
         try {
-            const response = await fetch(`/api/slots/${venueId}`);
+            const response = await fetch(`/api/slots/venue/${venueId}`);
             if (!response.ok) {
                 throw new Error('Failed to fetch slots');
             }
