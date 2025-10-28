@@ -12,6 +12,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.http.HttpMethod;
+
 
 @Configuration
 public class SecurityConfig {
@@ -55,8 +57,9 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/", "/index", "/about", "/contact", "/venues", "/venues/**",
                                 "/games", "/events", "/events/**", "/signup", "/login", "/css/**", "/js/**", "/images/**",
-                                "/api/auth/**", "/api/events", "/api/events/**", "/api/participants/**", "/api/slots/**"
+                                "/api/auth/**", "/api/events", "/api/events/**", "/api/participants/**", "/api/slots/**","/api/reviews/by-venue/**"
                         ).permitAll()
+                        .requestMatchers("/api/reviews").authenticated()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
@@ -70,11 +73,16 @@ public class SecurityConfig {
                         .invalidateHttpSession(true)           // Invalidate session
                         .deleteCookies("JSESSIONID")           // Remove session cookie
                         .permitAll()
+                )
+                // 👇 Disable CSRF for API endpoints to allow JS fetch() requests
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/api/**")
                 );
+
 
         http.authenticationProvider(authenticationProvider());
 
-//        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
