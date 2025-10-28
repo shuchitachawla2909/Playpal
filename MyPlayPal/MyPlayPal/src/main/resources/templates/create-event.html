@@ -61,6 +61,72 @@
         .add-slot-btn:hover {
             background-color: #2980b9;
         }
+        .slot-picker-container {
+            margin-top: 20px;
+        }
+        .court-group {
+            margin-bottom: 30px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            padding: 15px;
+            background-color: var(--white);
+        }
+        .court-header {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--heading-color);
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--secondary-color);
+        }
+        .date-group {
+            margin-bottom: 20px;
+        }
+        .date-label {
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            display: block;
+        }
+        .slots-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+        }
+        .slot-card {
+            padding: 10px;
+            border-radius: 5px;
+            border: 2px solid;
+            text-align: center;
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+        .slot-available {
+            background-color: var(--light-bg);
+            border-color: #ccc;
+            cursor: pointer;
+        }
+        .slot-available:hover {
+            border-color: var(--accent-color);
+            background-color: #e8f4f8;
+        }
+        .slot-available.selected {
+            background-color: #2ecc71;
+            color: white;
+            border-color: #27ae60;
+        }
+        .slot-unavailable {
+            background-color: #ddd;
+            color: #777;
+            border-color: #bbb;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        .loading-slots {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-color);
+        }
     </style>
 </head>
 <body>
@@ -161,24 +227,23 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Select Date & Time Slots: <span style="color: red;">*</span></label>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px;">
-                        <div>
-                            <label for="slot-date">Date:</label>
-                            <input type="date" id="slot-date" class="form-control">
-                        </div>
-                        <div>
-                            <label for="slot-time">Time:</label>
-                            <input type="time" id="slot-time" class="form-control">
+                    <label>Select Time Slots: <span style="color: red;">*</span></label>
+                    <p style="font-size: 0.9rem; color: var(--text-color); margin-top: 5px;">
+                        Click on available slots below to select them for your event. Selected slots will appear green.
+                    </p>
+                    <div class="slot-picker-container" id="slot-picker-container">
+                        <div class="loading-slots">
+                            <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: var(--accent-color);"></i>
+                            <p>Loading available slots...</p>
                         </div>
                     </div>
-                    <button type="button" class="add-slot-btn" onclick="addSlot()">
-                        <i class="fas fa-plus"></i> Add Slot
-                    </button>
                 </div>
 
-                <div class="slots-container" id="slots-container">
-                    <p style="color: var(--text-color); font-style: italic;">No slots added yet. Add at least one slot.</p>
+                <div class="form-group">
+                    <label>Selected Slots:</label>
+                    <div class="slots-container" id="slots-container">
+                        <p style="color: var(--text-color); font-style: italic;">No slots selected yet. Select at least one slot above.</p>
+                    </div>
                 </div>
 
                 <button type="submit" class="submit-btn" style="width: 100%; margin-top: 20px;">
@@ -210,53 +275,115 @@
     const venueId = [[${venue.id}]];
     const csrfToken = [[${_csrf.token}]];
 
-    let slots = [];
+    let availableSlots = [];
+    let selectedSlots = [];
 
-    function addSlot() {
-        const dateInput = document.getElementById('slot-date');
-        const timeInput = document.getElementById('slot-time');
+    async function loadSlots() {
+        try {
+            const response = await fetch(`/api/slots/venue/${venueId}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch slots');
+            }
+            availableSlots = await response.json();
+            renderSlotPicker();
+        } catch (error) {
+            console.error('Error loading slots:', error);
+            document.getElementById('slot-picker-container').innerHTML = `
+                <div class="loading-slots">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: #e74c3c;"></i>
+                    <p>Failed to load slots. Please try refreshing the page.</p>
+                </div>
+            `;
+        }
+    }
 
-        if (!dateInput.value || !timeInput.value) {
-            alert('Please select both date and time');
+    function renderSlotPicker() {
+        const container = document.getElementById('slot-picker-container');
+
+        if (availableSlots.length === 0) {
+            container.innerHTML = `
+                <div class="loading-slots">
+                    <i class="fas fa-calendar-times" style="font-size: 2rem; color: #ccc;"></i>
+                    <p>No slots available for this venue at the moment.</p>
+                </div>
+            `;
             return;
         }
 
-        const slotKey = `${dateInput.value}T${timeInput.value}`;
+        container.innerHTML = availableSlots.map(courtGroup => `
+            <div class="court-group">
+                <div class="court-header">
+                    <i class="fas fa-basketball-ball"></i> ${courtGroup.courtName}
+                </div>
+                <div class="date-group">
+                    <span class="date-label">
+                        <i class="fas fa-calendar-alt"></i> ${formatDate(courtGroup.date)}
+                    </span>
+                    <div class="slots-grid">
+                        ${courtGroup.slots.map(slot => {
+                            const isAvailable = slot.status === 'AVAILABLE';
+                            const isSelected = selectedSlots.some(s => s.slotId === slot.id);
+                            return `
+                                <div class="slot-card ${isAvailable ? 'slot-available' : 'slot-unavailable'} ${isSelected ? 'selected' : ''}"
+                                     onclick="${isAvailable ? `toggleSlot(${slot.id}, '${courtGroup.courtName}', '${courtGroup.date}', '${slot.startTime}', '${slot.endTime}')` : ''}"
+                                     ${!isAvailable ? 'title="This slot is not available"' : ''}>
+                                    <div style="font-weight: bold;">${formatTime(slot.startTime)}</div>
+                                    <div style="font-size: 0.8rem;">${formatTime(slot.endTime)}</div>
+                                    ${!isAvailable ? '<div style="font-size: 0.75rem; margin-top: 3px;">' + slot.status + '</div>' : ''}
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
 
-        if (slots.some(s => s.key === slotKey)) {
-            alert('This slot is already added');
-            return;
+    function toggleSlot(slotId, courtName, date, startTime, endTime) {
+        const index = selectedSlots.findIndex(s => s.slotId === slotId);
+
+        if (index > -1) {
+            selectedSlots.splice(index, 1);
+        } else {
+            selectedSlots.push({
+                slotId,
+                courtName,
+                date,
+                startTime,
+                endTime
+            });
         }
 
-        slots.push({
-            key: slotKey,
-            date: dateInput.value,
-            time: timeInput.value,
-            slotId: null
-        });
-
-        renderSlots();
-        dateInput.value = '';
-        timeInput.value = '';
+        renderSlotPicker();
+        renderSelectedSlots();
     }
 
-    function removeSlot(index) {
-        slots.splice(index, 1);
-        renderSlots();
+    function removeSelectedSlot(slotId) {
+        const index = selectedSlots.findIndex(s => s.slotId === slotId);
+        if (index > -1) {
+            selectedSlots.splice(index, 1);
+            renderSlotPicker();
+            renderSelectedSlots();
+        }
     }
 
-    function renderSlots() {
+    function renderSelectedSlots() {
         const container = document.getElementById('slots-container');
 
-        if (slots.length === 0) {
-            container.innerHTML = '<p style="color: var(--text-color); font-style: italic;">No slots added yet. Add at least one slot.</p>';
+        if (selectedSlots.length === 0) {
+            container.innerHTML = '<p style="color: var(--text-color); font-style: italic;">No slots selected yet. Select at least one slot above.</p>';
             return;
         }
 
-        container.innerHTML = slots.map((slot, index) => `
+        selectedSlots.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+
+        container.innerHTML = selectedSlots.map(slot => `
             <div class="slot-item">
-                <span><i class="fas fa-calendar-day"></i> ${formatDate(slot.date)} at ${formatTime(slot.time)}</span>
-                <button type="button" onclick="removeSlot(${index})">
+                <span>
+                    <i class="fas fa-calendar-day"></i> ${formatDate(slot.date)} at ${formatTime(slot.startTime)} - ${formatTime(slot.endTime)}
+                    <span style="color: var(--text-color); margin-left: 10px; font-size: 0.9rem;">(${slot.courtName})</span>
+                </span>
+                <button type="button" onclick="removeSelectedSlot(${slot.slotId})">
                     <i class="fas fa-trash"></i> Remove
                 </button>
             </div>
@@ -268,18 +395,19 @@
         return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
     }
 
-    function formatTime(timeString) {
-        const [hours, minutes] = timeString.split(':');
-        const hour = parseInt(hours);
-        const ampm = hour >= 12 ? 'PM' : 'AM';
-        const displayHour = hour % 12 || 12;
-        return `${displayHour}:${minutes} ${ampm}`;
+    function formatTime(isoString) {
+        const date = new Date(isoString);
+        const hours = date.getHours();
+        const minutes = date.getMinutes();
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        const displayHour = hours % 12 || 12;
+        return `${displayHour}:${minutes.toString().padStart(2, '0')} ${ampm}`;
     }
 
     document.getElementById('event-form').addEventListener('submit', async function(e) {
         e.preventDefault();
 
-        if (slots.length === 0) {
+        if (selectedSlots.length === 0) {
             alert('Please add at least one time slot for your event');
             return;
         }
@@ -294,7 +422,8 @@
             description: formData.get('description'),
             skillLevelRequired: formData.get('skillLevelRequired'),
             entryFee: parseFloat(formData.get('entryFee')),
-            slotIds: slots.map(s => s.slotId)
+            slotIds: selectedSlots.map(s => s.slotId),
+            venueId: venueId
         };
 
         try {
@@ -304,11 +433,7 @@
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': csrfToken
                 },
-                body: JSON.stringify({
-                    ...eventData,
-                    venueId: venueId,
-                    slots: slots
-                })
+                body: JSON.stringify(eventData)
             });
 
             if (response.ok) {
@@ -327,8 +452,7 @@
     });
 
     document.addEventListener('DOMContentLoaded', function() {
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('slot-date').setAttribute('min', today);
+        loadSlots();
     });
 </script>
 

@@ -2,6 +2,7 @@ package com.example.MyPlayPal.controller;
 
 import com.example.MyPlayPal.dto.CreateCourtSlotRequest;
 import com.example.MyPlayPal.dto.CourtSlotDto;
+import com.example.MyPlayPal.dto.VenueSlotResponse;
 import com.example.MyPlayPal.service.CourtSlotService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,4 +32,10 @@ public class CourtSlotController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to) {
         return ResponseEntity.ok(slotService.findSlotsByCourtAndRange(courtId, from, to));
     }
+
+    @GetMapping("/venue/{venueId}")
+    public ResponseEntity<List<VenueSlotResponse>> getAvailableSlotsByVenue(@PathVariable Long venueId) {
+        return ResponseEntity.ok(slotService.getAvailableSlotsByVenue(venueId));
+    }
+
 }
