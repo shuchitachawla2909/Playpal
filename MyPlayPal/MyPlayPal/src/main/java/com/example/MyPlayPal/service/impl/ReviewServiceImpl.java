@@ -40,10 +40,10 @@ public class ReviewServiceImpl implements ReviewService {
         User u = userRepo.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
 
-        // OPTIONAL: Check for existing review (Business logic to prevent multiple reviews)
-        if (reviewRepo.existsByVenueIdAndUserId(request.getVenueId(), userId)) {
-            throw new IllegalStateException("You have already reviewed this venue");
-        }
+//       // OPTIONAL: Check for existing review (Business logic to prevent multiple reviews)
+//        if (reviewRepo.existsByVenueIdAndUserId(request.getVenueId(), userId)) {
+//            throw new IllegalStateException("You have already reviewed this venue");
+//        }
 
         if (request.getRating() < 0 || request.getRating() > 5) {
             throw new IllegalArgumentException("Rating must be between 0 and 5");

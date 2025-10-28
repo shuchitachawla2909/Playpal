@@ -20,4 +20,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     // This method uses the two symbols you needed to import: @Query and Optional
     @Query("SELECT AVG(r.rating) FROM Review r WHERE r.venue.id = :venueId")
     Optional<Double> findAverageRatingByVenueId(Long venueId);
+
+    long countByVenueId(Long venueId);
 }

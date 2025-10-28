@@ -187,7 +187,13 @@
                 </p>
                 <p>
                     <strong><i class="fas fa-star"></i> Rating:</strong>
-                    <span id="venue-rating" th:text="${venue.rating != null} ? ${venue.rating} : 'New Venue'">4.5</span>
+                    <span id="venue-rating">
+                        <span th:if="${venue.rating != null}"
+                              th:text="${venue.rating + ' (' + venue.reviewCount + ' reviews)'}">
+                              4.0 (15 reviews)
+                        </span>
+                        <span th:if="${venue.rating == null}">New Venue</span>
+                    </span>
                 </p>
             </div>
             <div class="venue-info-card">
@@ -218,7 +224,7 @@
             </a>
         </div>
 
-        <!-- Reviews Section -->
+        <!-- ✅ ADDED: Reviews Section -->
         <div class="reviews-section">
             <div class="container">
                 <h2 class="section-subtitle">Reviews & Ratings</h2>
@@ -454,7 +460,7 @@
 
             if (reviews.length > 0) {
                 const avgRating = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
-                document.getElementById('venue-rating').textContent = avgRating.toFixed(1);
+                document.getElementById('venue-rating').textContent = avgRating.toFixed(1) + ' (' + reviews.length + ' reviews)';
             }
         } catch (error) {
             console.error('Error updating venue rating:', error);

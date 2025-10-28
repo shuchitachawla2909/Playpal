@@ -20,6 +20,8 @@ public class VenueDto {
     private Double rating;
     private String venueImageUrl;
 
+    private Integer reviewCount;
+
     // Example fields added for booking flow:
     private String managerName;
     private String managerContact;

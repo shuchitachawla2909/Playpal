@@ -46,6 +46,7 @@ public class VenueServiceImpl implements VenueService {
                         .city(v.getCity())
                         .rating(v.getRating())
                         .venueImageUrl(v.getVenueImageUrl())
+                        .reviewCount((int) reviewRepository.countByVenueId(v.getId()))
                         .build())
                 .collect(Collectors.toList());
     }
@@ -217,6 +218,7 @@ public class VenueServiceImpl implements VenueService {
                 .managerId(v.getManager() != null ? v.getManager().getId() : null)
                 .courts(v.getCourts() != null ? mapCourtsToDto(v.getCourts()) : List.of())
                 .reviews(v.getReviews() != null ? mapReviewsToDto(v.getReviews()) : List.of())
+                .reviewCount((int) reviewRepository.countByVenueId(v.getId()))
                 .build();
     }
 

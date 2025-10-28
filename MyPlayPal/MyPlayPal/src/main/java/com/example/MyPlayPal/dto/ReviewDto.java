@@ -16,7 +16,7 @@ public class ReviewDto {
     private Long venueId;
     private Long userId;
 
-    // NEW FIELD: To display the name of the reviewer on the frontend
+
     private String userName;
 
     private Integer rating;
