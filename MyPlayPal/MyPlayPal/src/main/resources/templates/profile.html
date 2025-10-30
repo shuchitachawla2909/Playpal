@@ -63,10 +63,14 @@
 
 <section class="profile-section">
     <div class="container" style="max-width: 1000px;">
+
+        <!-- Profile Info -->
         <div style="background-color: var(--white); padding: 40px; border-radius: var(--border-radius); box-shadow: var(--box-shadow); margin-bottom: 40px;">
             <h2>Your Profile</h2>
             <div style="text-align: center; margin: 20px 0;">
-                <img th:src="${user.profilePictureUrl != null} ? ${user.profilePictureUrl} : @{/images/default-avatar.jpeg}" alt="avatar" style="width:100px;height:100px;border-radius:50%; border: 3px solid var(--secondary-color); object-fit: cover;">
+                <img th:src="${user.profilePictureUrl != null} ? ${user.profilePictureUrl} : @{/images/default-avatar.jpeg}"
+                     alt="avatar"
+                     style="width:100px;height:100px;border-radius:50%; border: 3px solid var(--secondary-color); object-fit: cover;">
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
                 <p><strong>Username:</strong> <span th:text="${user.username}"></span></p>
@@ -78,39 +82,49 @@
             </div>
         </div>
 
+        <!-- Events Created & Joined -->
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+            <!-- Events Created -->
             <div style="background-color: var(--white); padding: 30px; border-radius: var(--border-radius); box-shadow: var(--box-shadow);">
                 <h2 style="color: var(--primary-color); margin-bottom: 20px; border-bottom: 2px solid var(--secondary-color); padding-bottom: 10px;">
                     <i class="fas fa-calendar-plus"></i> Events Created
                 </h2>
                 <div th:if="${eventsCreated != null and !eventsCreated.isEmpty()}">
-                    <div th:each="event : ${eventsCreated}" style="background-color: var(--light-bg); padding: 15px; margin-bottom: 15px; border-radius: var(--border-radius);">
+                    <div th:each="event : ${eventsCreated}"
+                         style="background-color: var(--light-bg); padding: 15px; margin-bottom: 15px; border-radius: var(--border-radius);">
                         <h4 style="margin: 0 0 10px 0;">
-                            <a th:href="@{/events/{id}(id=${event.id})}" style="color: var(--heading-color); text-decoration: none;">
+                            <a th:href="@{/events/{id}(id=${event.id})}"
+                               style="color: var(--heading-color); text-decoration: none;">
                                 <span th:text="${event.eventName}">Event Name</span>
                             </a>
                         </h4>
                         <p style="margin: 5px 0; font-size: 0.9rem; color: var(--text-color);">
-                            <i class="fas fa-users"></i> <span th:text="${event.currentPlayers} + '/' + ${event.maxPlayers}">5/10</span> players
+                            <i class="fas fa-users"></i>
+                            <span th:text="${event.currentPlayers} + '/' + ${event.maxPlayers}">5/10</span> players
                         </p>
                         <p style="margin: 5px 0; font-size: 0.9rem; color: var(--text-color);">
                             <i class="fas fa-rupee-sign"></i> ₹<span th:text="${event.entryFee}">200</span>
                         </p>
                     </div>
                 </div>
-                <p th:if="${eventsCreated == null or eventsCreated.isEmpty()}" style="text-align: center; color: var(--text-color); padding: 20px;">
-                    <i class="fas fa-calendar-times" style="font-size: 2rem; color: #ccc; display: block; margin-bottom: 10px;"></i>
+                <p th:if="${eventsCreated == null or eventsCreated.isEmpty()}"
+                   style="text-align: center; color: var(--text-color); padding: 20px;">
+                    <i class="fas fa-calendar-times"
+                       style="font-size: 2rem; color: #ccc; display: block; margin-bottom: 10px;"></i>
                     No events created yet.
                 </p>
             </div>
 
+            <!-- Events Joined -->
             <div style="background-color: var(--white); padding: 30px; border-radius: var(--border-radius); box-shadow: var(--box-shadow);">
                 <h2 style="color: var(--primary-color); margin-bottom: 20px; border-bottom: 2px solid var(--secondary-color); padding-bottom: 10px;">
                     <i class="fas fa-user-check"></i> Events Joined
                 </h2>
-                <div th:each="event : ${eventsJoined}" style="background-color: var(--light-bg); padding: 15px; margin-bottom: 15px; border-radius: var(--border-radius);">
+                <div th:each="event : ${eventsJoined}"
+                     style="background-color: var(--light-bg); padding: 15px; margin-bottom: 15px; border-radius: var(--border-radius);">
                     <h4 style="margin: 0 0 10px 0;">
-                        <a th:href="@{/events/{id}(id=${event.id})}" style="color: var(--heading-color); text-decoration: none;">
+                        <a th:href="@{/events/{id}(id=${event.id})}"
+                           style="color: var(--heading-color); text-decoration: none;">
                             <span th:text="${event.eventName}">Event Name</span>
                         </a>
                     </h4>
@@ -126,14 +140,56 @@
                         <i class="fas fa-rupee-sign"></i> ₹<span th:text="${event.entryFee}">200</span>
                     </p>
                 </div>
-                <p th:if="${eventsJoined == null or eventsJoined.isEmpty()}" style="text-align: center; color: var(--text-color); padding: 20px;">
-                    <i class="fas fa-calendar-times" style="font-size: 2rem; color: #ccc; display: block; margin-bottom: 10px;"></i>
+                <p th:if="${eventsJoined == null or eventsJoined.isEmpty()}"
+                   style="text-align: center; color: var(--text-color); padding: 20px;">
+                    <i class="fas fa-calendar-times"
+                       style="font-size: 2rem; color: #ccc; display: block; margin-bottom: 10px;"></i>
                     No events joined yet.
                 </p>
             </div>
         </div>
+
+        <!-- My Bookings -->
+        <div style="background-color: var(--white); margin-top: 40px; padding: 30px; border-radius: var(--border-radius); box-shadow: var(--box-shadow);">
+            <h2 style="color: var(--primary-color); margin-bottom: 20px; border-bottom: 2px solid var(--secondary-color); padding-bottom: 10px;">
+                <i class="fas fa-ticket-alt"></i> My Bookings
+            </h2>
+
+            <div th:if="${bookings != null and !bookings.isEmpty()}">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead style="background-color: var(--secondary-color); color: white;">
+                    <tr>
+                        <th style="padding: 10px;">Court</th>
+                        <th style="padding: 10px;">Date</th>
+                        <th style="padding: 10px;">Start Time</th>
+                        <th style="padding: 10px;">End Time</th>
+                        <th style="padding: 10px;">Amount</th>
+                        <th style="padding: 10px;">Status</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="booking : ${bookings}" style="background-color: var(--light-bg); text-align: center;">
+                        <td style="padding: 10px;" th:text="${booking.courtName}">Court A</td>
+                        <td style="padding: 10px;" th:text="${#temporals.format(booking.bookingDate, 'dd-MM-yyyy')}">30-10-2025</td>
+                        <td style="padding: 10px;" th:text="${#temporals.format(booking.startTime, 'HH:mm')}">07:00</td>
+                        <td style="padding: 10px;" th:text="${#temporals.format(booking.endTime, 'HH:mm')}">08:00</td>
+                        <td style="padding: 10px;">₹<span th:text="${booking.totalAmount}">200</span></td>
+                        <td style="padding: 10px;" th:text="${booking.status}">CONFIRMED</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <p th:if="${bookings == null or bookings.isEmpty()}"
+               style="text-align: center; color: var(--text-color); padding: 20px;">
+                <i class="fas fa-calendar-times"
+                   style="font-size: 2rem; color: #ccc; display: block; margin-bottom: 10px;"></i>
+                You have no bookings yet.
+            </p>
+        </div>
     </div>
 </section>
+
 
 </body>
 </html>

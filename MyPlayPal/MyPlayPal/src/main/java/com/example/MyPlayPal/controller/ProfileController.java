@@ -13,7 +13,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-
+import com.example.MyPlayPal.service.BookingService;
+import com.example.MyPlayPal.dto.BookingDto;
 import java.util.List;
 
 @Controller
@@ -23,6 +24,7 @@ public class ProfileController {
     private final UserRepository userRepo;
     private final EventService eventService;
     private final EventParticipantService participantService;
+    private final BookingService bookingService;
 
     @GetMapping("/profile")
     public String profilePage(Model model) {
@@ -39,10 +41,12 @@ public class ProfileController {
 
         List<Event> eventsCreated = eventService.getEventsByOrganizer(user);
         List<Event> eventsJoined = participantService.getEventsJoinedByUser(user);
+        List<BookingDto> userBookings = bookingService.getBookingsByUserId(user.getId());
 
         model.addAttribute("user", user);
         model.addAttribute("eventsCreated", eventsCreated);
         model.addAttribute("eventsJoined", eventsJoined);
+        model.addAttribute("userBookings", userBookings);
         return "profile";
     }
 }

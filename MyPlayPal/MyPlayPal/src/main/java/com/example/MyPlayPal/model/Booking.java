@@ -23,11 +23,13 @@ public class Booking {
     @JoinColumn(name="slot_id")
     private CourtSlot slot;
 
+    @Column(nullable = false)
     private Instant bookingDate = Instant.now();
 
     @Enumerated(EnumType.STRING)
     private BookingStatus status = BookingStatus.PENDING;
 
+    @Column(precision = 10, scale = 2)
     private BigDecimal totalAmount;
 
     @OneToOne(mappedBy = "booking", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

@@ -92,14 +92,12 @@
                 <div class="form-group">
                     <label for="booking-date">Select Date:</label>
                     <input type="date" id="booking-date" class="form-control" required>
+                    <input type="hidden" id="court-id" th:value="${court.id}">
                 </div>
 
                 <h3>Available Slots (Hourly):</h3>
-                <div class="slot-selection-grid">
-                    <button type="button" class="time-slot-btn" data-slot="18:00" th:data-price="${court.hourlyRate}">18:00 - 19:00</button>
-                    <button type="button" class="time-slot-btn selected" data-slot="19:00" th:data-price="${court.hourlyRate}">19:00 - 20:00</button>
-                    <button type="button" class="time-slot-btn" data-slot="20:00" th:data-price="${court.hourlyRate}">20:00 - 21:00</button>
-                    <button type="button" class="time-slot-btn" data-slot="21:00" th:data-price="${court.hourlyRate}">21:00 - 22:00</button>
+                <div class="slot-selection-grid" id="slot-grid">
+                    <p style="text-align:center; width:100%;">Select a date to view available slots.</p>
                 </div>
 
                 <div style="text-align: right; margin-top: 30px;">
@@ -180,7 +178,6 @@
 </footer>
 
 <script th:inline="javascript">
-
     // --- DTO and State Initialization ---
     const DTO = {
         venueId: [[${venue.id}]],
@@ -198,24 +195,16 @@
     };
     // ------------------------------------
 
-    // --- UTILITY FUNCTIONS ---
     function updateStepIndicator(newStep) {
         document.querySelectorAll('.step').forEach(step => {
             const stepNum = parseInt(step.getAttribute('data-step'));
-            step.classList.remove('active', 'disabled');
-
-            if (stepNum === newStep) {
-                step.classList.add('active');
-            }
+            step.classList.remove('active');
+            if (stepNum === newStep) step.classList.add('active');
         });
         bookingState.currentStep = newStep;
     }
 
-    // --- MAIN NAVIGATION LOGIC (Permissive) ---
-
     function navigateToStep(step) {
-        // ⭐ PERMISSIVE: Allows direct jump using step indicators
-
         document.getElementById('view-slot-selection').style.display = 'none';
         document.getElementById('view-payment').style.display = 'none';
         document.getElementById('view-confirmation').style.display = 'none';
@@ -223,64 +212,99 @@
         if (step === 1) {
             document.getElementById('view-slot-selection').style.display = 'block';
         } else if (step === 2) {
-            // Update summary data before showing payment view
-            document.getElementById('summary-slot-time').textContent = bookingState.selectedSlot + ' - ' + (parseInt(bookingState.selectedSlot.split(':')[0]) + 1) + ':00';
+            document.getElementById('summary-slot-time').textContent =
+                bookingState.selectedSlot + ' - ' + (parseInt(bookingState.selectedSlot.split(':')[0]) + 1) + ':00';
             document.getElementById('summary-slot-date').textContent = bookingState.selectedDate;
             document.getElementById('view-payment').style.display = 'block';
         } else if (step === 3) {
-             document.getElementById('view-confirmation').style.display = 'block';
+            document.getElementById('view-confirmation').style.display = 'block';
         }
         updateStepIndicator(step);
     }
-    // ------------------------------------------
 
-    // --- STEP 1: Slot Selection Handlers ---
-
+    // --- STEP 1: Slot Selection ---
     document.querySelectorAll('.time-slot-btn').forEach(button => {
         button.addEventListener('click', function() {
             document.querySelectorAll('.time-slot-btn').forEach(btn => btn.classList.remove('selected'));
             this.classList.add('selected');
-
-            // Update state variables
             bookingState.selectedSlot = this.getAttribute('data-slot');
             bookingState.selectedPrice = this.getAttribute('data-price');
-
             document.getElementById('total-price').textContent = '₹' + bookingState.selectedPrice;
             document.getElementById('payment-amount').textContent = '₹' + bookingState.selectedPrice;
         });
     });
 
     document.getElementById('booking-date').addEventListener('change', function() {
-         bookingState.selectedDate = this.value;
+        bookingState.selectedDate = this.value;
     });
 
-    // ⭐ FIX: This handler now uses the robust validation and ensures state is current
     document.getElementById('proceed-to-payment').addEventListener('click', function() {
-        const dateInput = document.getElementById('booking-date');
-        const selectedSlotButton = document.querySelector('.time-slot-btn.selected');
-
-        // Always update selectedDate from the input field
-        bookingState.selectedDate = dateInput.value;
-
-        // Final Validation Check
-        if (!selectedSlotButton) {
-            alert('Please select an available time slot.');
-            return;
-        }
-        if (!bookingState.selectedDate || bookingState.selectedDate === "") {
+        if (!bookingState.selectedDate) {
             alert('Please select a booking date.');
             return;
         }
-
-        // Ensure state variables are current before navigating
-        bookingState.selectedSlot = selectedSlotButton.getAttribute('data-slot');
-        bookingState.selectedPrice = selectedSlotButton.getAttribute('data-price');
-
+        if (!bookingState.selectedSlot) {
+            alert('Please select a slot.');
+            return;
+        }
         navigateToStep(2);
     });
 
-    // --- STEP 2: Payment Selection Handlers ---
+    async function loadAvailableSlots(date) {
+    const slotGrid = document.getElementById('slot-grid');
+    slotGrid.innerHTML = `<p>Loading available slots...</p>`;
 
+    try {
+        const courtId = document.getElementById('court-id').value;
+        const response = await fetch(`/api/court-slots/available?courtId=${courtId}&date=${date}`);
+
+        if (!response.ok) throw new Error('Failed to fetch slots');
+        const slots = await response.json();
+
+        if (slots.length === 0) {
+            slotGrid.innerHTML = `<p>No slots available for this date.</p>`;
+            return;
+        }
+
+        slotGrid.innerHTML = '';
+        slots.forEach(slot => {
+            const start = new Date(slot.startTime);
+            const end = new Date(slot.endTime);
+
+            // Ignore invalid or already booked slots
+            if (slot.status !== 'AVAILABLE' || isNaN(start) || isNaN(end)) return;
+
+            const btn = document.createElement('button');
+            btn.className = 'time-slot-btn';
+            btn.dataset.slot = slot.startTime;
+            btn.dataset.price = DTO.hourlyRate;
+            btn.textContent = `${start.getHours().toString().padStart(2, '0')}:00 - ${end.getHours().toString().padStart(2, '0')}:00`;
+
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.time-slot-btn').forEach(b => b.classList.remove('selected'));
+                this.classList.add('selected');
+                bookingState.selectedSlot = this.dataset.slot;
+                bookingState.selectedPrice = this.dataset.price;
+                document.getElementById('total-price').textContent = '₹' + bookingState.selectedPrice;
+                document.getElementById('payment-amount').textContent = '₹' + bookingState.selectedPrice;
+            });
+
+            slotGrid.appendChild(btn);
+        });
+    } catch (err) {
+        console.error('Error fetching slots:', err);
+        slotGrid.innerHTML = `<p>Error loading slots. Please try again later.</p>`;
+    }
+}
+
+    // --- Date Change Handler ---
+    document.getElementById('booking-date').addEventListener('change', function() {
+        bookingState.selectedDate = this.value;
+        loadAvailableSlots(this.value);
+    });
+
+
+    // --- STEP 2: Payment ---
     document.querySelectorAll('.payment-option-card').forEach(card => {
         card.addEventListener('click', function() {
             document.querySelectorAll('.payment-option-card').forEach(c => c.style.borderColor = 'var(--light-bg)');
@@ -290,80 +314,97 @@
         });
     });
 
-    document.getElementById('confirm-payment-btn').addEventListener('click', function() {
+    document.getElementById('confirm-payment-btn').addEventListener('click', async function() {
         if (!bookingState.paymentMethod) {
             alert('Please select a payment method.');
             return;
         }
-        simulatePaymentGateway();
+
+        this.disabled = true;
+        this.querySelector('.btn-text').style.display = 'none';
+        this.querySelector('.btn-loader').style.display = 'inline';
+
+        // Simulate payment gateway delay
+        setTimeout(() => {
+            const paymentRefId = 'TXN' + Math.floor(Math.random() * 1000000);
+            postBookingToServer(paymentRefId);
+        }, 2000);
     });
 
-    // --- PAYMENT GATEWAY HOOK & FINAL POST ---
+    // --- POST to Backend ---
+    async function postBookingToServer(paymentRefId) {
+        const start = new Date(bookingState.selectedSlot);
 
-    function simulatePaymentGateway() {
-        const btn = document.getElementById('confirm-payment-btn');
-        btn.disabled = true;
-        btn.classList.add('loading');
+        // Assuming each slot is 1 hour — adjust if your slots differ
+        const end = new Date(start.getTime() + 60 * 60 * 1000);
 
-        setTimeout(() => {
-            const bookingId = Math.floor(Math.random() * 1000000);
-            postBookingToServer(bookingId);
-            btn.classList.remove('loading');
-        }, 2000);
-    }
+        // Convert to ISO string and trim to "YYYY-MM-DDTHH:mm:ss"
+        const endTime = end.toISOString().slice(0, 19);
 
-    function postBookingToServer(paymentRefId) {
-        const totalAmountDecimal = parseFloat(bookingState.selectedPrice);
-
-        const finalBookingData = {
+        const bookingData = {
             courtId: DTO.courtId,
-            bookingDate: bookingState.selectedDate,
             startTime: bookingState.selectedSlot,
-            totalAmount: totalAmountDecimal,
+            endTime: endTime,
+            bookingDate: bookingState.selectedDate,
+            totalAmount: bookingState.selectedPrice,
             paymentRefId: paymentRefId
         };
 
-        document.getElementById('confirmation-booking-id').textContent = '#' + paymentRefId;
-        navigateToStep(3);
+        try {
+            const response = await fetch('/api/bookings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': DTO.csrfToken
+                },
+                body: JSON.stringify(bookingData)
+            });
+
+            if (response.ok) {
+                const booking = await response.json();
+                document.getElementById('confirmation-booking-id').textContent = '#' + booking.id;
+                navigateToStep(3);
+            } else if (response.status === 401) {
+                alert('Please log in to complete your booking.');
+                window.location.href = '/login';
+            } else {
+                alert('Booking failed. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error posting booking:', error);
+            alert('Error connecting to server.');
+        } finally {
+            const btn = document.getElementById('confirm-payment-btn');
+            btn.disabled = false;
+            btn.querySelector('.btn-text').style.display = 'inline';
+            btn.querySelector('.btn-loader').style.display = 'none';
+        }
     }
 
-    // --- Initialization ---
-    document.addEventListener('DOMContentLoaded', () => {
-        const dateInput = document.getElementById('booking-date');
+    // --- INIT ---
+document.addEventListener('DOMContentLoaded', async () => {
+    const dateInput = document.getElementById('booking-date');
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.value = today;
+    bookingState.selectedDate = today;
 
-        // 1. Set initial date to today
-        const today = new Date().toISOString().split('T')[0];
-        dateInput.value = today;
+    // Load available slots dynamically for today
+    await loadAvailableSlots(today);
 
-        // 2. Initialize state variables based on the DOM selection
-        bookingState.selectedDate = today;
+    // Select the first slot automatically if available
+    const firstSlot = document.querySelector('.time-slot-btn.selected') || document.querySelector('.time-slot-btn');
+    if (firstSlot) {
+        firstSlot.classList.add('selected');
+        bookingState.selectedSlot = firstSlot.getAttribute('data-slot');
+        bookingState.selectedPrice = firstSlot.getAttribute('data-price');
+    }
 
-        let selectedSlotButton = document.querySelector('.time-slot-btn.selected');
-
-        // 3. Fallback: If no default is set, forcibly select the first available slot
-        if (!selectedSlotButton) {
-             const firstSlotButton = document.querySelector('.time-slot-btn');
-             if (firstSlotButton) {
-                 firstSlotButton.classList.add('selected');
-                 selectedSlotButton = firstSlotButton;
-             }
-        }
-
-        // 4. Set final state based on selection
-        if (selectedSlotButton) {
-            bookingState.selectedSlot = selectedSlotButton.getAttribute('data-slot');
-            bookingState.selectedPrice = selectedSlotButton.getAttribute('data-price');
-        } else {
-             bookingState.selectedSlot = null;
-             bookingState.selectedPrice = DTO.hourlyRate;
-        }
-
-        // Set click handlers for step indicators
-        document.getElementById('step-slot').addEventListener('click', () => navigateToStep(1));
-        document.getElementById('step-payment').addEventListener('click', () => navigateToStep(2));
-        document.getElementById('step-confirm').addEventListener('click', () => navigateToStep(3));
-    });
-
+    // Step navigation (kept as in your original version)
+    document.getElementById('step-slot').addEventListener('click', () => navigateToStep(1));
+    document.getElementById('step-payment').addEventListener('click', () => navigateToStep(2));
+    document.getElementById('step-confirm').addEventListener('click', () => navigateToStep(3));
+});
 </script>
+
 </body>
 </html>

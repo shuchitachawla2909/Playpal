@@ -22,7 +22,10 @@ public class CourtSlot {
     @JoinColumn(name = "court_id")
     private Court court;
 
+    @Column(nullable = false)
     private LocalDateTime startTime;
+
+    @Column(nullable = false)
     private LocalDateTime endTime;
 
     @Enumerated(EnumType.STRING)

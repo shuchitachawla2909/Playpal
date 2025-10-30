@@ -15,6 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Service
 public class CourtSlotServiceImpl implements CourtSlotService {
@@ -111,4 +113,23 @@ public class CourtSlotServiceImpl implements CourtSlotService {
 
         return response;
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CourtSlotDto> getAvailableSlotsForCourtAndDate(Long courtId, LocalDate date) {
+        // Get slots from your repository
+        List<CourtSlot> slots = slotRepository.findAvailableSlotsByCourtAndDate(courtId, date);
+
+        // Convert to DTOs
+        return slots.stream()
+                .map(slot -> CourtSlotDto.builder()
+                        .id(slot.getId())
+                        .courtId(slot.getCourt().getId())
+                        .startTime(slot.getStartTime())
+                        .endTime(slot.getEndTime())
+                        .status(slot.getStatus().name())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
 }

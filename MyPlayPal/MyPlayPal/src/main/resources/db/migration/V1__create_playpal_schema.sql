@@ -1,160 +1,234 @@
--- V1__create_playpal_schema.sql
-
--- users
+-- ================================================
+-- USERS TABLE
+-- ================================================
 CREATE TABLE users (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  username VARCHAR(100) NOT NULL,
-  email VARCHAR(200) NOT NULL,
-  password VARCHAR(255) NOT NULL,
-  contact VARCHAR(30),
-  city VARCHAR(100),
-  state VARCHAR(100),
-  profile_picture_url VARCHAR(500),
-  age INT,
-  gender VARCHAR(10),
-  registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT uq_users_email UNIQUE (email),
-  CONSTRAINT uq_users_contact UNIQUE (contact),
-  CONSTRAINT uq_users_username UNIQUE (username)
-) ENGINE=InnoDB;
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    contact VARCHAR(15) UNIQUE,
+    city VARCHAR(100),
+    state VARCHAR(100),
+    profile_picture_url VARCHAR(255),
+    age INT,
+    gender VARCHAR(20),
+    registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
--- managers
+-- ================================================
+-- MANAGERS TABLE
+-- ================================================
 CREATE TABLE managers (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  managername VARCHAR(150),
-  contact VARCHAR(30) UNIQUE,
-  email VARCHAR(200) UNIQUE,
-  password VARCHAR(255)
-) ENGINE=InnoDB;
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    managername VARCHAR(100) NOT NULL,
+    contact VARCHAR(20) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL
+);
 
--- sports
+-- ================================================
+-- SPORTS TABLE
+-- ================================================
 CREATE TABLE sports (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  sportname VARCHAR(100) NOT NULL UNIQUE
-) ENGINE=InnoDB;
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    sportname VARCHAR(100) NOT NULL,
+    sport_image_url VARCHAR(255)
+);
 
--- venues
+-- ================================================
+-- VENUES TABLE
+-- ================================================
 CREATE TABLE venues (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  venuename VARCHAR(200) NOT NULL,
-  street VARCHAR(255),
-  city VARCHAR(100),
-  state VARCHAR(100),
-  pincode VARCHAR(20),
-  manager_id BIGINT,
-  rating DECIMAL(2,1) DEFAULT 0,
-  CONSTRAINT fk_venues_manager FOREIGN KEY (manager_id) REFERENCES managers(id) ON DELETE SET NULL
-) ENGINE=InnoDB;
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    venuename VARCHAR(150) NOT NULL,
+    street VARCHAR(255),
+    city VARCHAR(100),
+    state VARCHAR(100),
+    pincode VARCHAR(20),
+    rating DOUBLE,
+    manager_id BIGINT,
+    venue_image_url VARCHAR(255),
+    CONSTRAINT fk_venue_manager FOREIGN KEY (manager_id)
+        REFERENCES managers(id)
+        ON DELETE SET NULL
+);
 
--- courts
+-- ================================================
+-- COURTS TABLE
+-- ================================================
 CREATE TABLE courts (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  courtname VARCHAR(200) NOT NULL,
-  venue_id BIGINT,
-  sport_id BIGINT,
-  hourly_rate DECIMAL(10,2) DEFAULT 0,
-  is_bookable BOOLEAN DEFAULT TRUE,
-  CONSTRAINT fk_courts_venue FOREIGN KEY (venue_id) REFERENCES venues(id) ON DELETE CASCADE,
-  CONSTRAINT fk_courts_sport FOREIGN KEY (sport_id) REFERENCES sports(id) ON DELETE SET NULL
-) ENGINE=InnoDB;
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    courtname VARCHAR(100) NOT NULL,
+    venue_id BIGINT,
+    sport_id BIGINT,
+    hourly_rate DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    is_bookable BOOLEAN DEFAULT TRUE,
+    CONSTRAINT fk_court_venue FOREIGN KEY (venue_id)
+        REFERENCES venues(id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_court_sport FOREIGN KEY (sport_id)
+        REFERENCES sports(id)
+        ON DELETE CASCADE
+);
 
--- court_slots (slot-based availability)
+-- ================================================
+-- COURT SLOTS TABLE
+-- ================================================
 CREATE TABLE court_slots (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  court_id BIGINT NOT NULL,
-  start_time DATETIME NOT NULL,
-  end_time DATETIME NOT NULL,
-  status VARCHAR(20) NOT NULL DEFAULT 'AVAILABLE', -- AVAILABLE | RESERVED | BOOKED | MAINTENANCE
-  CONSTRAINT fk_slots_court FOREIGN KEY (court_id) REFERENCES courts(id) ON DELETE CASCADE,
-  CONSTRAINT ux_slot_unique UNIQUE (court_id, start_time, end_time)
-) ENGINE=InnoDB;
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    court_id BIGINT NOT NULL,
+    start_time DATETIME NOT NULL,
+    end_time DATETIME NOT NULL,
+    status VARCHAR(20) DEFAULT 'AVAILABLE',
+    CONSTRAINT fk_slot_court FOREIGN KEY (court_id)
+        REFERENCES courts(id)
+        ON DELETE CASCADE,
+    CONSTRAINT uq_court_slot UNIQUE (court_id, start_time, end_time)
+);
 
--- bookings
+-- ================================================
+-- BOOKINGS TABLE
+-- ================================================
 CREATE TABLE bookings (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  user_id BIGINT NOT NULL,
-  slot_id BIGINT NOT NULL,
-  booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  status VARCHAR(20) DEFAULT 'PENDING', -- PENDING | CONFIRMED | CANCELLED
-  total_amount DECIMAL(10,2),
-  CONSTRAINT fk_bookings_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-  CONSTRAINT fk_bookings_slot FOREIGN KEY (slot_id) REFERENCES court_slots(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    slot_id BIGINT NOT NULL,
+    booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(20) DEFAULT 'PENDING',
+    total_amount DECIMAL(10,2),
+    CONSTRAINT fk_booking_user FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_booking_slot FOREIGN KEY (slot_id)
+        REFERENCES court_slots(id)
+        ON DELETE CASCADE
+);
 
--- events
+-- ================================================
+-- EVENTS TABLE
+-- ================================================
 CREATE TABLE events (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  event_name VARCHAR(255) NOT NULL,
-  organizer_user_id BIGINT,
-  sport_id BIGINT,
-  venue_id BIGINT,
-  start_time DATETIME,
-  end_time DATETIME,
-  max_players INT,
-  description TEXT,
-  skill_level_required VARCHAR(50),
-  entry_fee DECIMAL(10,2) DEFAULT 0,
-  CONSTRAINT fk_events_organizer FOREIGN KEY (organizer_user_id) REFERENCES users(id) ON DELETE SET NULL,
-  CONSTRAINT fk_events_sport FOREIGN KEY (sport_id) REFERENCES sports(id) ON DELETE SET NULL,
-  CONSTRAINT fk_events_venue FOREIGN KEY (venue_id) REFERENCES venues(id) ON DELETE SET NULL
-) ENGINE=InnoDB;
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    event_name VARCHAR(150) NOT NULL,
+    organizer_user_id BIGINT,
+    booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    max_players INT,
+    current_players INT DEFAULT 0,
+    description TEXT,
+    skill_level_required VARCHAR(100),
+    entry_fee DECIMAL(10,2),
+    status VARCHAR(20) DEFAULT 'PENDING',
+    total_amount DECIMAL(10,2),
+    CONSTRAINT fk_event_organizer FOREIGN KEY (organizer_user_id)
+        REFERENCES users(id)
+        ON DELETE SET NULL
+);
 
--- event_participants
+-- ================================================
+-- EVENT SLOTS (Many-to-Many between EVENTS and COURT_SLOTS)
+-- ================================================
+CREATE TABLE event_slots (
+    event_id BIGINT NOT NULL,
+    slot_id BIGINT NOT NULL,
+    PRIMARY KEY (event_id, slot_id),
+    CONSTRAINT fk_event_slot_event FOREIGN KEY (event_id)
+        REFERENCES events(id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_event_slot_slot FOREIGN KEY (slot_id)
+        REFERENCES court_slots(id)
+        ON DELETE CASCADE
+);
+
+-- ================================================
+-- EVENT PARTICIPANTS TABLE
+-- ================================================
 CREATE TABLE event_participants (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  event_id BIGINT NOT NULL,
-  user_id BIGINT NOT NULL,
-  join_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  status VARCHAR(20) DEFAULT 'JOINED', -- JOINED | PENDING | CANCELLED
-  CONSTRAINT fk_ep_event FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE,
-  CONSTRAINT fk_ep_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-  CONSTRAINT ux_event_user UNIQUE (event_id, user_id)
-) ENGINE=InnoDB;
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    event_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    join_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(20) DEFAULT 'JOINED',
+    CONSTRAINT uq_event_user UNIQUE (event_id, user_id),
+    CONSTRAINT fk_participant_event FOREIGN KEY (event_id)
+        REFERENCES events(id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_participant_user FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
+);
 
--- notifications
-CREATE TABLE notifications (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  user_id BIGINT NOT NULL,
-  message TEXT,
-  is_read BOOLEAN DEFAULT FALSE,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT fk_notifications_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
-
--- payment_transactions
-CREATE TABLE payment_transactions (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  user_id BIGINT,
-  booking_id BIGINT,
-  amount DECIMAL(10,2),
-  timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  status VARCHAR(20) DEFAULT 'INITIATED', -- INITIATED | SUCCESS | FAILED | REFUNDED
-  CONSTRAINT fk_payments_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
-  CONSTRAINT fk_payments_booking FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE SET NULL
-) ENGINE=InnoDB;
-
--- reviews_ratings
-CREATE TABLE reviews_ratings (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  venue_id BIGINT,
-  user_id BIGINT,
-  rating INT,
-  comment TEXT,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT fk_reviews_venue FOREIGN KEY (venue_id) REFERENCES venues(id) ON DELETE CASCADE,
-  CONSTRAINT fk_reviews_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
-) ENGINE=InnoDB;
-
--- user_sport (associative)
+-- ================================================
+-- USER_SPORT TABLE (Many-to-Many)
+-- ================================================
 CREATE TABLE user_sport (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  user_id BIGINT,
-  sport_id BIGINT,
-  skill_level VARCHAR(50),
-  CONSTRAINT fk_us_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-  CONSTRAINT fk_us_sport FOREIGN KEY (sport_id) REFERENCES sports(id) ON DELETE CASCADE,
-  CONSTRAINT ux_user_sport UNIQUE (user_id, sport_id)
-) ENGINE=InnoDB;
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    sport_id BIGINT NOT NULL,
+    skill_level VARCHAR(50),
+    CONSTRAINT uq_user_sport UNIQUE (user_id, sport_id),
+    CONSTRAINT fk_user_sport_user FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_user_sport_sport FOREIGN KEY (sport_id)
+        REFERENCES sports(id)
+        ON DELETE CASCADE
+);
 
-ALTER TABLE sports ADD COLUMN sport_image_url VARCHAR(255) DEFAULT NULL;
-ALTER TABLE venues ADD COLUMN venue_image_url VARCHAR(255) DEFAULT NULL;
+-- ================================================
+-- PAYMENT TRANSACTIONS TABLE
+-- ================================================
+CREATE TABLE payment_transactions (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT,
+    booking_id BIGINT UNIQUE,
+    event_id BIGINT UNIQUE,
+    participant_id BIGINT UNIQUE,
+    amount DECIMAL(10,2),
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(20) DEFAULT 'INITIATED',
+    reference_id VARCHAR(100),
+    CONSTRAINT fk_payment_user FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_payment_booking FOREIGN KEY (booking_id)
+        REFERENCES bookings(id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_payment_event FOREIGN KEY (event_id)
+        REFERENCES events(id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_payment_participant FOREIGN KEY (participant_id)
+        REFERENCES event_participants(id)
+        ON DELETE CASCADE
+);
+
+-- ================================================
+-- REVIEWS & RATINGS TABLE
+-- ================================================
+CREATE TABLE reviews_ratings (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    venue_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    rating INT CHECK (rating BETWEEN 1 AND 5),
+    comment TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_review_venue FOREIGN KEY (venue_id)
+        REFERENCES venues(id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_review_user FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
+);
+
+-- ================================================
+-- NOTIFICATIONS TABLE
+-- ================================================
+CREATE TABLE notifications (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT,
+    message VARCHAR(255),
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_notification_user FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
+);

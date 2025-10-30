@@ -9,51 +9,63 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import com.example.MyPlayPal.model.User;
 import java.security.Principal;
+import com.example.MyPlayPal.repository.UserRepository;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/bookings")
-
 public class BookingController {
+
     @Autowired
     private BookingService bookingService;
 
-    // Assuming this service exists to map Principal (username) to Long ID
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private UserRepository userRepository;
+
     @PostMapping
-    public ResponseEntity<BookingDto> createBooking(Principal principal, @Valid @RequestBody CreateBookingRequest request) {
-        // ⭐ Securely retrieve userId from Principal and set it in the request DTO
-        // NOTE: You must implement userService.getUserIdByUsername()
+    public ResponseEntity<BookingDto> createBooking(Principal principal,
+                                                    @Valid @RequestBody CreateBookingRequest request) {
+        // Securely retrieve userId from Principal and set it in the request DTO
         Long currentUserId = userService.getUserIdByUsername(principal.getName());
         request.setUserId(currentUserId);
 
-        // You may want to return 201 Created status
-        return new ResponseEntity<>(bookingService.createBooking(request), HttpStatus.CREATED);
+        BookingDto createdBooking = bookingService.createBooking(request);
+        return new ResponseEntity<>(createdBooking, HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<BookingDto> getBooking(@PathVariable Long id) {
-        // NOTE: In a secure app, you must check if the authenticated user owns this booking.
-        return ResponseEntity.ok(bookingService.getById(id));
+    public ResponseEntity<BookingDto> getBooking(@PathVariable Long id, Principal principal) {
+        Long currentUserId = userService.getUserIdByUsername(principal.getName());
+        BookingDto booking = bookingService.getById(id);
+
+        // Security check: ensure the current user owns this booking
+        if (!booking.getUserId().equals(currentUserId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        return ResponseEntity.ok(booking);
     }
 
-    // ⭐ FIX 1: Secure endpoint for listing current user's bookings
     @GetMapping("/my-bookings")
-    public ResponseEntity<List<BookingDto>> listByUser(Principal principal) {
-        // Deriving ID from Principal, assuming bookingService can now handle Long ID
-        Long userId = userService.getUserIdByUsername(principal.getName());
-        return ResponseEntity.ok(bookingService.listByUser(userId));
+    public ResponseEntity<List<BookingDto>> getMyBookings(Principal principal) {
+        // Step 1: Get the username from the logged-in user
+        String username = principal.getName();
+
+        // Step 2: Fetch the User entity to get the ID
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Step 3: Use the user ID to fetch bookings
+        List<BookingDto> bookings = bookingService.getBookingsByUserId(user.getId());
+
+        // Step 4: Return the list as the response
+        return ResponseEntity.ok(bookings);
     }
 
-    // Removed old /by-user/{userId} endpoint to enforce security
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> cancelBooking(@PathVariable Long id) {
-        // Implement cancel in service if available
-        return ResponseEntity.ok("Cancel booking endpoint not implemented");
-    }
 }
+

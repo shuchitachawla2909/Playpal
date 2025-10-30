@@ -26,11 +26,12 @@ public class BookingServiceImpl implements BookingService {
     private final CourtRepository courtRepo;
     private final CourtSlotRepository slotRepo;
 
-    public BookingServiceImpl(CourtSlotRepository slotRepo,
-                              BookingRepository bookingRepo,
-                              UserRepository userRepo,
-                              PaymentTransactionRepository paymentRepo,
-                              CourtRepository courtRepo) {
+    public BookingServiceImpl(
+            CourtSlotRepository slotRepo,
+            BookingRepository bookingRepo,
+            UserRepository userRepo,
+            PaymentTransactionRepository paymentRepo,
+            CourtRepository courtRepo) {
         this.slotRepo = slotRepo;
         this.bookingRepo = bookingRepo;
         this.userRepo = userRepo;
@@ -41,56 +42,68 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional
     public BookingDto createBooking(CreateBookingRequest req) {
-        // --- 1. User and Time Validation ---
+        // --- 1. Validate User ---
         User user = userRepo.findById(req.getUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + req.getUserId()));
 
-        LocalTime requestedStartTime = LocalTime.parse(req.getStartTime());
+        // --- 2. Validate and Lock Slot ---
+        LocalTime requestedStartTime = req.getStartTime();
         LocalDateTime startDateTime = req.getBookingDate().atTime(requestedStartTime);
-        LocalDateTime endDateTime = startDateTime.plusHours(1); // Assuming 1-hour slots
+        LocalDateTime endDateTime = startDateTime.plusHours(1);
 
-        // --- 2. Find and Lock Slot ---
         CourtSlot slot = slotRepo.findByCourtIdAndStartTimeAndEndTime(req.getCourtId(), startDateTime, endDateTime)
-                .orElseThrow(() -> new ResourceNotFoundException("Slot not found for specified date/time/court."));
+                .orElseThrow(() -> new ResourceNotFoundException("Slot not found for the specified time and court."));
 
-        if (!slot.getStatus().equals(CourtSlot.SlotStatus.AVAILABLE)) {
-            throw new IllegalStateException("Slot is not available for booking.");
+        if (slot.getStatus() != CourtSlot.SlotStatus.AVAILABLE) {
+            throw new IllegalStateException("Slot is already booked or unavailable.");
         }
 
-        // --- 3. Process Transaction ---
+        // --- 3. Lock slot to prevent concurrent booking ---
         slot.setStatus(CourtSlot.SlotStatus.BOOKED);
         slotRepo.save(slot);
 
-        BigDecimal rate = slot.getCourt().getHourlyRate() == null ? BigDecimal.ZERO : slot.getCourt().getHourlyRate();
+        // --- 4. Calculate total booking cost ---
+        BigDecimal rate = slot.getCourt().getHourlyRate() == null
+                ? BigDecimal.ZERO
+                : slot.getCourt().getHourlyRate();
+
         long minutes = java.time.Duration.between(slot.getStartTime(), slot.getEndTime()).toMinutes();
         BigDecimal hours = BigDecimal.valueOf(minutes).divide(BigDecimal.valueOf(60), 2, RoundingMode.HALF_UP);
-        BigDecimal calculatedTotal = rate.multiply(hours);
+        BigDecimal totalAmount = rate.multiply(hours);
 
-        // --- 4. Create Booking ---
+        // --- 5. Create Booking ---
         Booking booking = Booking.builder()
                 .user(user)
                 .slot(slot)
                 .bookingDate(Instant.now())
                 .status(Booking.BookingStatus.CONFIRMED)
-                .totalAmount(calculatedTotal)
+                .totalAmount(totalAmount)
                 .build();
 
-        Booking saved = bookingRepo.save(booking);
+        Booking savedBooking = bookingRepo.save(booking);
 
-        // --- 5. Create Payment Transaction Record ---
-        PaymentTransaction tx = PaymentTransaction.builder()
+        // --- 6. Record Payment Transaction ---
+        PaymentTransaction transaction = PaymentTransaction.builder()
                 .user(user)
-                .booking(saved)
-                .amount(calculatedTotal)
+                .booking(savedBooking)
+                .amount(totalAmount)
                 .timestamp(Instant.now())
                 .status(PaymentTransaction.PaymentStatus.SUCCESS)
                 .referenceId(req.getPaymentRefId())
                 .build();
 
-        paymentRepo.save(tx);
+        paymentRepo.save(transaction);
 
-        // Convert to DTO and return
-        return toDto(saved);
+        // --- 7. Convert to DTO and Return ---
+        return toDto(savedBooking);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public BookingDto getById(Long id) {
+        Booking booking = bookingRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found with id: " + id));
+        return toDto(booking);
     }
 
     @Override
@@ -102,6 +115,7 @@ public class BookingServiceImpl implements BookingService {
                 .collect(Collectors.toList());
     }
 
+    // --- Private helper method ---
     private BookingDto toDto(Booking booking) {
         return BookingDto.builder()
                 .id(booking.getId())
@@ -115,9 +129,28 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional(readOnly = true)
-    public BookingDto getById(Long id) {
-        Booking booking = bookingRepo.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Booking not found with id: " + id));
-        return toDto(booking);
+    public List<BookingDto> getBookingsByUserId(Long userId) {
+        // ✅ Use the injected userRepo instead of the class name
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // ✅ Use the injected bookingRepo instead of the class name
+        List<Booking> bookings = bookingRepo.findByUser(user);
+
+        // ✅ The booking model refers to a CourtSlot (slot), not directly to a Court
+        return bookings.stream()
+                .map(b -> BookingDto.builder()
+                        .id(b.getId())
+                        .courtId(b.getSlot().getCourt().getId())
+                        .courtname(b.getSlot().getCourt().getCourtname()) // ✅ fixed case
+                        .bookingDate(b.getBookingDate())
+                        .startTime(b.getSlot().getStartTime())
+                        .endTime(b.getSlot().getEndTime())
+                        .totalAmount(b.getTotalAmount())
+                        .status(b.getStatus().toString())
+                        .build())
+                .collect(Collectors.toList());
+
     }
+
 }

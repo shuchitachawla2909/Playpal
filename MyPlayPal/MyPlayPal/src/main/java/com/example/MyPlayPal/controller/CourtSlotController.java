@@ -9,20 +9,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/slots")
+@RequiredArgsConstructor
+@RequestMapping("/api/court-slots")
 public class CourtSlotController {
 
     @Autowired
-    private CourtSlotService slotService;
+    private CourtSlotService courtSlotService;
 
     @PostMapping
     public ResponseEntity<CourtSlotDto> createSlot(@Valid @RequestBody CreateCourtSlotRequest request) {
-        return ResponseEntity.ok(slotService.createSlot(request));
+        return ResponseEntity.ok(courtSlotService.createSlot(request));
     }
 
     @GetMapping("/by-court")
@@ -30,12 +32,20 @@ public class CourtSlotController {
             @RequestParam Long courtId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to) {
-        return ResponseEntity.ok(slotService.findSlotsByCourtAndRange(courtId, from, to));
+        return ResponseEntity.ok(courtSlotService.findSlotsByCourtAndRange(courtId, from, to));
     }
 
     @GetMapping("/venue/{venueId}")
     public ResponseEntity<List<VenueSlotResponse>> getAvailableSlotsByVenue(@PathVariable Long venueId) {
-        return ResponseEntity.ok(slotService.getAvailableSlotsByVenue(venueId));
+        return ResponseEntity.ok(courtSlotService.getAvailableSlotsByVenue(venueId));
     }
 
+    @GetMapping("/available")
+    public ResponseEntity<List<CourtSlotDto>> getAvailableSlotsForCourtAndDate(
+            @RequestParam("courtId") Long courtId,
+            @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+
+        List<CourtSlotDto> slots = courtSlotService.getAvailableSlotsForCourtAndDate(courtId, date);
+        return ResponseEntity.ok(slots);
+    }
 }
