@@ -26,22 +26,28 @@ public class EventParticipantServiceImpl implements EventParticipantService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new RuntimeException("Event not found"));
 
-        // Check if already joined
+        // 🚫 1️⃣ Prevent organizer from joining their own event
+        if (event.getOrganizer().getId().equals(user.getId())) {
+            throw new RuntimeException("Organizer cannot join their own event");
+        }
+
+        // 🚫 2️⃣ Prevent duplicate participation
         participantRepository.findByEventAndUser(event, user)
                 .ifPresent(p -> { throw new RuntimeException("User already joined this event"); });
 
-        // Check max players
+        // 🚫 3️⃣ Prevent joining if event is already full
         if (event.getCurrentPlayers() >= event.getMaxPlayers()) {
             throw new RuntimeException("Event is full");
         }
 
+        // ✅ 4️⃣ Create new participant entry
         EventParticipant participant = EventParticipant.builder()
                 .event(event)
                 .user(user)
                 .status(EventParticipant.ParticipantStatus.JOINED)
                 .build();
 
-        // Update event player count
+        // ✅ 5️⃣ Update current players count
         event.setCurrentPlayers(event.getCurrentPlayers() + 1);
         eventRepository.save(event);
 
