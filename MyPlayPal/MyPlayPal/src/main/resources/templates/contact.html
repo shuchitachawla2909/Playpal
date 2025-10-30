@@ -29,7 +29,9 @@
                 <div sec:authorize="isAuthenticated()" class="mydiv">
 
                     <a sec:authorize="hasRole('USER')" th:href="@{/profile}" class="nav-link">
-                        <img th:src="${currentUser.profilePictureUrl != null} ? ${currentUser.profilePictureUrl} : @{/images/default-avatar.jpeg}"
+                        <img th:src="${currentUser != null and currentUser.profilePictureUrl != null} ?
+              ${currentUser.profilePictureUrl} :
+              @{/images/default-avatar.jpeg}"
                              alt="Profile" class="nav-avatar">
                     </a>
 
