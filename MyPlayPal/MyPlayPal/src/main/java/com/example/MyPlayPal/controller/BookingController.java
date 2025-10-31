@@ -67,5 +67,17 @@ public class BookingController {
         return ResponseEntity.ok(bookings);
     }
 
+    @PutMapping("/{id}/cancel")
+    public ResponseEntity<BookingDto> cancelBooking(@PathVariable Long id, Principal principal) {
+        // 1️⃣ Get the logged-in user ID
+        Long currentUserId = userService.getUserIdByUsername(principal.getName());
+
+        // 2️⃣ Call service method
+        BookingDto cancelledBooking = bookingService.cancelBooking(id, currentUserId);
+
+        // 3️⃣ Return success response
+        return ResponseEntity.ok(cancelledBooking);
+    }
+
 }
 

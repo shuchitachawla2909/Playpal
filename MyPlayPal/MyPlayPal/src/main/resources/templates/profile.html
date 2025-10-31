@@ -157,7 +157,8 @@
                 <i class="fas fa-ticket-alt"></i> My Bookings
             </h2>
 
-            <div th:if="${bookings != null and !bookings.isEmpty()}">
+            <!-- ✅ Display bookings if available -->
+            <div th:if="${userBookings != null and !userBookings.isEmpty()}">
                 <table style="width: 100%; border-collapse: collapse;">
                     <thead style="background-color: var(--secondary-color); color: white;">
                     <tr>
@@ -167,28 +168,164 @@
                         <th style="padding: 10px;">End Time</th>
                         <th style="padding: 10px;">Amount</th>
                         <th style="padding: 10px;">Status</th>
+                        <th style="padding: 10px;">Actions</th>
                     </tr>
                     </thead>
+
                     <tbody>
-                    <tr th:each="booking : ${bookings}" style="background-color: var(--light-bg); text-align: center;">
-                        <td style="padding: 10px;" th:text="${booking.courtName}">Court A</td>
+                    <tr th:each="booking : ${userBookings}" style="background-color: var(--light-bg); text-align: center;">
+                        <td style="padding: 10px;" th:text="${booking.courtname}">Court A</td>
                         <td style="padding: 10px;" th:text="${#temporals.format(booking.bookingDate, 'dd-MM-yyyy')}">30-10-2025</td>
                         <td style="padding: 10px;" th:text="${#temporals.format(booking.startTime, 'HH:mm')}">07:00</td>
                         <td style="padding: 10px;" th:text="${#temporals.format(booking.endTime, 'HH:mm')}">08:00</td>
                         <td style="padding: 10px;">₹<span th:text="${booking.totalAmount}">200</span></td>
                         <td style="padding: 10px;" th:text="${booking.status}">CONFIRMED</td>
+
+                        <td style="padding: 10px;">
+                            <button type="button"
+                                    th:if="${booking.status == 'CONFIRMED'}"
+                                    th:attr="data-booking-id=${booking.id}, data-booking-name=${booking.courtname}"
+                                    onclick="openCancelModal(this)"
+                                    style="background-color: #ff4d4d; color: white; padding: 6px 10px; border: none; border-radius: 6px; cursor: pointer; transition: 0.2s;">
+                                Cancel
+                            </button>
+
+                            <span th:if="${booking.status != 'CONFIRMED'}"
+                                  style="color: gray; font-style: italic;">N/A</span>
+                        </td>
                     </tr>
                     </tbody>
                 </table>
             </div>
 
-            <p th:if="${bookings == null or bookings.isEmpty()}"
+            <!-- 🚫 If no bookings -->
+            <p th:if="${userBookings == null or userBookings.isEmpty()}"
                style="text-align: center; color: var(--text-color); padding: 20px;">
                 <i class="fas fa-calendar-times"
                    style="font-size: 2rem; color: #ccc; display: block; margin-bottom: 10px;"></i>
                 You have no bookings yet.
             </p>
         </div>
+
+        <!-- 🔹 Custom Modal for Confirmation -->
+        <div id="cancelModal" class="custom-modal">
+            <div class="modal-content">
+                <h3>Cancel Booking?</h3>
+                <p id="cancelModalText"></p>
+                <div class="modal-buttons">
+                    <button id="confirmCancelBtn" class="confirm-btn">Yes, Cancel</button>
+                    <button onclick="closeModal()" class="cancel-btn">No</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 🔹 Success Modal -->
+        <div id="successModal" class="custom-modal">
+            <div class="modal-content">
+                <h3 style="color: var(--primary-color);">Booking Cancelled</h3>
+                <p id="successModalText"></p>
+                <div class="modal-buttons">
+                    <button onclick="closeModal()" class="confirm-btn">OK</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 🔹 Modal Styling -->
+        <style>
+            .custom-modal {
+                display: none;
+                position: fixed;
+                z-index: 2000;
+                left: 0; top: 0;
+                width: 100%; height: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
+                align-items: center; justify-content: center;
+            }
+
+            .modal-content {
+                background: white;
+                padding: 25px;
+                border-radius: 12px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+                width: 320px;
+                text-align: center;
+                animation: slideDown 0.3s ease;
+            }
+
+            .modal-buttons {
+                margin-top: 20px;
+                display: flex;
+                justify-content: space-around;
+            }
+
+            .confirm-btn {
+                background-color: var(--primary-color);
+                color: white;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 6px;
+                cursor: pointer;
+            }
+
+            .cancel-btn {
+                background-color: #ccc;
+                color: black;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 6px;
+                cursor: pointer;
+            }
+
+            @keyframes slideDown {
+                from { transform: translateY(-10px); opacity: 0; }
+                to { transform: translateY(0); opacity: 1; }
+            }
+        </style>
+
+        <!-- 🔹 JS Logic -->
+        <script>
+            let currentBookingId = null;
+            let currentBookingName = null;
+
+            function openCancelModal(button) {
+                currentBookingId = button.getAttribute("data-booking-id");
+                currentBookingName = button.getAttribute("data-booking-name");
+
+                document.getElementById("cancelModalText").textContent =
+                    `Are you sure you want to cancel your booking for ${currentBookingName}?`;
+
+                document.getElementById("cancelModal").style.display = "flex";
+            }
+
+            function closeModal() {
+                document.querySelectorAll(".custom-modal").forEach(modal => modal.style.display = "none");
+            }
+
+            document.getElementById("confirmCancelBtn").addEventListener("click", async () => {
+                try {
+                    const response = await fetch(`/api/bookings/${currentBookingId}/cancel`, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" }
+                    });
+
+                    if (response.ok) {
+                        const row = document.querySelector(`[data-booking-id="${currentBookingId}"]`).closest("tr");
+                        row.querySelector("td:nth-child(6)").textContent = "CANCELLED";
+                        row.querySelector("button").remove();
+
+                        closeModal();
+                        document.getElementById("successModalText").textContent =
+                            `${currentBookingName} has been cancelled successfully.`;
+                        document.getElementById("successModal").style.display = "flex";
+                    } else {
+                        alert("Failed to cancel booking. Please try again.");
+                    }
+                } catch (error) {
+                    alert("An error occurred: " + error.message);
+                }
+            });
+        </script>
+
     </div>
 </section>
 

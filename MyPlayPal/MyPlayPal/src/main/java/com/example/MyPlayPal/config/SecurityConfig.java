@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -49,43 +50,52 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(org.springframework.security.config.annotation.web.builders.HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/manager/**").hasRole("MANAGER")
                         .requestMatchers("/user/**").hasRole("USER")
+
+                        // ✅ Protect booking routes
+                        .requestMatchers("/venues/*/book/**", "/bookings/**", "/api/bookings/**").authenticated()
+
+                        // ✅ Publicly accessible pages
                         .requestMatchers(
-                                "/", "/index", "/about", "/contact", "/venues", "/venues/**",
-                                "/games", "/events", "/events/**", "/signup", "/login", "/css/**", "/js/**", "/images/**",
-                                "/api/auth/**", "/api/events", "/api/events/**", "/api/participants/**", "/api/slots/**","/api/reviews/by-venue/**"
+                                "/", "/index", "/about", "/contact",
+                                "/venues",                 // list all venues
+                                "/venues/*",               // individual venue details
+                                "/games", "/events", "/events/**", "/signup", "/login",
+                                "/css/**", "/js/**", "/images/**",
+                                "/api/auth/**", "/api/events", "/api/events/**",
+                                "/api/participants/**", "/api/slots/**", "/api/reviews/by-venue/**"
                         ).permitAll()
+
                         .requestMatchers("/api/reviews").authenticated()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .successHandler(customAuthSuccessHandler) // ✅ Use custom handler
+                        .successHandler(customAuthSuccessHandler)
                         .permitAll()
                 )
                 .logout(logout -> logout
-                        .logoutUrl("/logout")                  // URL triggered by logout
-                        .logoutSuccessUrl("/login?logout")     // Redirect after logout
-                        .invalidateHttpSession(true)           // Invalidate session
-                        .deleteCookies("JSESSIONID")           // Remove session cookie
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/login?logout")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
                         .permitAll()
                 )
-                // 👇 Disable CSRF for API endpoints to allow JS fetch() requests
+                // Disable CSRF for API calls
                 .csrf(csrf -> csrf
                         .ignoringRequestMatchers("/api/**")
                 );
 
-
         http.authenticationProvider(authenticationProvider());
-
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+
 }
 
 

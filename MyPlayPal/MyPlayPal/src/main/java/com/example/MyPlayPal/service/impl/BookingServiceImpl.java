@@ -153,4 +153,44 @@ public class BookingServiceImpl implements BookingService {
 
     }
 
+    @Override
+    @Transactional
+    public BookingDto cancelBooking(Long bookingId, Long userId) {
+        // 1️⃣ Validate user
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
+        // 2️⃣ Fetch booking and check ownership
+        Booking booking = bookingRepo.findById(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found with id: " + bookingId));
+
+        if (!booking.getUser().getId().equals(userId)) {
+            throw new IllegalStateException("You are not authorized to cancel this booking.");
+        }
+
+        // 3️⃣ Check current booking status
+        if (booking.getStatus() == Booking.BookingStatus.CANCELLED) {
+            throw new IllegalStateException("Booking is already cancelled.");
+        }
+
+        // 4️⃣ Soft cancel the booking
+        booking.setStatus(Booking.BookingStatus.CANCELLED);
+        bookingRepo.save(booking);
+
+        // 5️⃣ Free up the slot again for rebooking
+        CourtSlot slot = booking.getSlot();
+        slot.setStatus(CourtSlot.SlotStatus.AVAILABLE);
+        slotRepo.save(slot);
+
+        // 6️⃣ (Optional) Update payment status if integration exists
+        if (booking.getPayment() != null) {
+            booking.getPayment().setStatus(PaymentTransaction.PaymentStatus.REFUNDED);
+            paymentRepo.save(booking.getPayment());
+        }
+
+        // 7️⃣ Return updated DTO
+        return toDto(booking);
+    }
+
+
 }
