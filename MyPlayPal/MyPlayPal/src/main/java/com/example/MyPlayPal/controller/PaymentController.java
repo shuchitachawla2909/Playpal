@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Controller
-@RequestMapping("/api/payment")   // ✅ keep this with leading slash
+@RequestMapping("/api/payment")
 public class PaymentController {
 
     private final PaymentService paymentService;
@@ -23,16 +23,15 @@ public class PaymentController {
         this.paymentService = paymentService;
     }
 
-    // ✅ 1. Create Razorpay Order (called via JS fetch)
+    // ✅ Create Razorpay Order (called via JS fetch)
     @PostMapping("/create-order")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> createOrder(@RequestBody Map<String, Object> data) {
-
         System.out.println("⚡ Received payment request: " + data);
 
         try {
             double amount = Double.parseDouble(data.get("amount").toString());
-            String receipt = "booking_" + data.get("bookingId");
+            String receipt = "booking_temp_" + System.currentTimeMillis();
 
             Order order = paymentService.createOrder(amount, receipt);
 
@@ -40,24 +39,34 @@ public class PaymentController {
             response.put("id", order.get("id"));
             response.put("amount", order.get("amount"));
             response.put("currency", order.get("currency"));
+            response.put("status", "created");
 
+            System.out.println("✅ Order created successfully: " + response);
             return ResponseEntity.ok(response);
+
         } catch (Exception e) {
+            System.err.println("❌ Error creating order: " + e.getMessage());
             e.printStackTrace();
+
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Payment order creation failed");
+            errorResponse.put("message", e.getMessage());
+
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Payment order creation failed"));
+                    .body(errorResponse);
         }
     }
 
-    // ✅ 2. Show Payment Page
+    // ✅ Show Payment Page
     @GetMapping("/page")
     public String showPaymentPage(
             @RequestParam double amount,
-            @RequestParam Long bookingId,
+            @RequestParam(required = false, defaultValue = "0") Long bookingId,
             @RequestParam(required = false) String date,
             @RequestParam(required = false) String slots,
             @RequestParam(required = false) String venueName,
             @RequestParam(required = false) String courtName,
+            @RequestParam(required = false) Long courtId,
             Model model) {
 
         model.addAttribute("venueName", venueName);
@@ -66,15 +75,21 @@ public class PaymentController {
         model.addAttribute("selectedSlots", slots);
         model.addAttribute("totalAmount", amount);
         model.addAttribute("bookingId", bookingId);
+        model.addAttribute("courtId", courtId);
 
-        return "payment"; // ✅ loads payment.html
+        return "payment";
     }
 
-
-    // ✅ 3. Payment Success Page
+    // ✅ Payment Success Page
     @GetMapping("/success")
-    public String paymentSuccess(@RequestParam Long bookingId, Model model) {
+    public String paymentSuccess(
+            @RequestParam(required = false) Long bookingId,
+            @RequestParam(required = false) String paymentId,
+            Model model) {
+
         model.addAttribute("bookingId", bookingId);
+        model.addAttribute("paymentId", paymentId);
+
         return "payment_success";
     }
 }

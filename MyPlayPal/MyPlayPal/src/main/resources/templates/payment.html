@@ -58,11 +58,34 @@
         .pay-btn:hover {
             background-color: #1d4ed8;
         }
+        .pay-btn:disabled {
+            background-color: #94a3b8;
+            cursor: not-allowed;
+        }
+        .debug-box {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        .debug-box pre {
+            margin: 5px 0;
+            font-family: monospace;
+        }
     </style>
 </head>
 <body>
 
 <div class="payment-container">
+    <!-- DEBUG INFO -->
+    <div class="debug-box" id="debug-info">
+        <strong>🐛 Debug Info:</strong>
+        <pre id="debug-data"></pre>
+        <pre id="debug-status">Waiting for payment...</pre>
+    </div>
+
     <h2>Confirm Your Booking</h2>
 
     <div class="summary-box">
@@ -93,12 +116,25 @@
     </button>
 </div>
 
+<!-- Load Razorpay SDK -->
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <script th:inline="javascript">
+    // Check if Razorpay loaded
+    const debugStatus = document.getElementById('debug-status');
+    const debugData = document.getElementById('debug-data');
+
+    if (typeof Razorpay === 'undefined') {
+        debugStatus.textContent = '❌ ERROR: Razorpay SDK not loaded!';
+        debugStatus.style.color = 'red';
+    } else {
+        debugStatus.textContent = '✅ Razorpay SDK loaded successfully';
+        debugStatus.style.color = 'green';
+    }
+
     const payBtn = document.getElementById("pay-btn");
 
-    // ✅ Thymeleaf variables safely injected
+    // ✅ Get data from Thymeleaf
     const paymentData = {
         amount: [[${totalAmount}]],
         bookingId: [[${bookingId} ?: 0]],
@@ -108,51 +144,126 @@
         slots: '[[${selectedSlots}]]'
     };
 
-    payBtn.addEventListener("click", async function () {
+    // Display payment data in debug box
+    debugData.textContent = JSON.stringify(paymentData, null, 2);
+
+    console.log("💳 Payment Data Loaded:", paymentData);
+
+    payBtn.addEventListener("click", async function (e) {
+        e.preventDefault();
+        console.log("🔘 Pay button clicked at:", new Date().toLocaleTimeString());
+
+        debugStatus.textContent = '⏳ Step 1: Button clicked, preparing request...';
+
         payBtn.disabled = true;
-        payBtn.textContent = "Processing payment... 💳";
+        payBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
 
         const totalAmount = paymentData.amount;
         const bookingId = paymentData.bookingId;
 
         try {
-            // ✅ Fixed endpoint path
+            debugStatus.textContent = '⏳ Step 2: Sending request to /api/payment/create-order...';
+            console.log("📡 Sending POST to /api/payment/create-order with:", { amount: totalAmount, bookingId });
+
             const response = await fetch('/api/payment/create-order', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ amount: totalAmount, bookingId })
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    amount: totalAmount,
+                    bookingId: bookingId
+                })
             });
 
-            if (!response.ok) throw new Error("Order creation failed");
-            const order = await response.json();
+            console.log("📥 Response Status:", response.status, response.statusText);
+            debugStatus.textContent = `⏳ Step 3: Received response (${response.status})...`;
 
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error("❌ Server Error Response:", errorText);
+                debugStatus.textContent = `❌ Server Error: ${response.status} - ${errorText}`;
+                throw new Error(`Server returned ${response.status}: ${errorText}`);
+            }
+
+            const order = await response.json();
+            console.log("✅ Order Created Successfully:", order);
+            debugStatus.textContent = '⏳ Step 4: Order created, initializing Razorpay...';
+
+            // Verify order has required fields
+            if (!order.id || !order.amount || !order.currency) {
+                console.error("❌ Invalid order object:", order);
+                debugStatus.textContent = '❌ Invalid order data received';
+                throw new Error("Order missing required fields");
+            }
+
+            // ✅ Configure Razorpay checkout
             const options = {
-                key: "rzp_test_RaPHMz8n2pAwqn",  // 🔑 Your Razorpay test key
+                key: "rzp_test_RaUdqlIGoEQOFj",
                 amount: order.amount,
                 currency: order.currency,
                 name: "MyPlayPal",
-                description: "Booking Payment",
+                description: "Sports Venue Booking Payment",
                 order_id: order.id,
                 handler: function (response) {
-                    alert("✅ Payment Successful!");
-                    window.location.href = `/api/payment/success?bookingId=${bookingId}`;
+                    console.log("✅✅✅ PAYMENT SUCCESS:", response);
+                    debugStatus.textContent = '✅ Payment successful! Redirecting...';
+                    alert("✅ Payment Successful!\nPayment ID: " + response.razorpay_payment_id);
+                    window.location.href = `/api/payment/success?bookingId=${bookingId}&paymentId=${response.razorpay_payment_id}`;
                 },
                 prefill: {
                     name: "MyPlayPal User",
-                    email: "user@example.com"
+                    email: "user@example.com",
+                    contact: "9999999999"
                 },
-                theme: { color: "#2563eb" }
+                notes: {
+                    booking_id: bookingId,
+                    venue: paymentData.venueName,
+                    court: paymentData.courtName
+                },
+                theme: {
+                    color: "#2563eb"
+                },
+                modal: {
+                    ondismiss: function() {
+                        console.log("⚠️ Payment modal closed by user");
+                        debugStatus.textContent = '⚠️ Payment cancelled by user';
+                        payBtn.disabled = false;
+                        payBtn.innerHTML = '<i class="fa-solid fa-credit-card"></i> Proceed to Pay';
+                    }
+                }
             };
 
+            console.log("🚀 Razorpay Options:", options);
+            debugStatus.textContent = '⏳ Step 5: Opening Razorpay checkout modal...';
+
+            // Check if Razorpay is available
+            if (typeof Razorpay === 'undefined') {
+                throw new Error("Razorpay SDK not loaded!");
+            }
+
             const razorpay = new Razorpay(options);
+
+            razorpay.on('payment.failed', function (response) {
+                console.error("❌ PAYMENT FAILED:", response.error);
+                debugStatus.textContent = '❌ Payment failed: ' + response.error.description;
+                alert("⚠️ Payment Failed!\n" + response.error.description);
+                payBtn.disabled = false;
+                payBtn.innerHTML = '<i class="fa-solid fa-credit-card"></i> Proceed to Pay';
+            });
+
+            console.log("🎬 Calling razorpay.open()...");
             razorpay.open();
+            console.log("🎬 razorpay.open() called successfully");
+            debugStatus.textContent = '✅ Razorpay modal should be open now!';
 
         } catch (error) {
-            console.error("Payment failed:", error);
-            alert("⚠️ Payment could not be started. Please try again or check your network.");
-        } finally {
+            console.error("❌❌❌ CRITICAL ERROR:", error);
+            debugStatus.textContent = '❌ Error: ' + error.message;
+            alert("⚠️ Payment Error!\n\n" + error.message + "\n\nCheck console (F12) for details.");
             payBtn.disabled = false;
-            payBtn.textContent = "Proceed to Pay 💰";
+            payBtn.innerHTML = '<i class="fa-solid fa-credit-card"></i> Proceed to Pay';
         }
     });
 </script>
