@@ -1,11 +1,7 @@
 package com.example.MyPlayPal.service;
 
-
-import com.example.MyPlayPal.dto.PaymentDto;
-
-import java.util.List;
+import com.razorpay.Order;
 
 public interface PaymentService {
-    List<PaymentDto> listByUser(Long userId);
-    PaymentDto getById(Long id);
+    Order createOrder(double amount, String receipt) throws Exception;
 }

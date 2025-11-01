@@ -67,8 +67,11 @@ public class SecurityConfig {
                                 "/games", "/events", "/events/**", "/signup", "/login",
                                 "/css/**", "/js/**", "/images/**",
                                 "/api/auth/**", "/api/events", "/api/events/**",
-                                "/api/participants/**", "/api/slots/**", "/api/reviews/by-venue/**"
+                                "/api/participants/**", "/api/slots/**", "/api/reviews/by-venue/**","/payment/**",
+                                "/payment/create-order"
                         ).permitAll()
+                        .requestMatchers("/api/payment/**").permitAll()
+
 
                         .requestMatchers("/api/reviews").authenticated()
                         .anyRequest().authenticated()

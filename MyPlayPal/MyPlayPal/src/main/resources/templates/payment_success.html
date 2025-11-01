@@ -1,0 +1,59 @@
+<!-- src/main/resources/templates/payment_success.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Payment Successful | MyPlayPal</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #e8f5e9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .card {
+            background: white;
+            padding: 30px 50px;
+            border-radius: 20px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+            text-align: center;
+        }
+        .card h1 {
+            color: #2e7d32;
+        }
+        .card p {
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        .btn {
+            background: #0d6efd;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 8px;
+            text-decoration: none;
+        }
+        .btn:hover {
+            background: #0b5ed7;
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h1>✅ Payment Successful!</h1>
+    <p>Payment ID: <span id="paymentId"></span></p>
+    <p>Booking ID: <span id="bookingId"></span></p>
+    <p>Thank you for booking with <strong>MyPlayPal</strong>.</p>
+    <a href="/dashboard" class="btn">Go to Dashboard</a>
+</div>
+
+<script>
+    const paymentId = new URLSearchParams(window.location.search).get("paymentId");
+    const bookingId = new URLSearchParams(window.location.search).get("bookingId");
+    document.getElementById("paymentId").innerText = paymentId;
+    document.getElementById("bookingId").innerText = bookingId;
+</script>
+</body>
+</html>
