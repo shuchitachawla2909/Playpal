@@ -1,11 +1,8 @@
 package com.example.MyPlayPal.service;
 
-import com.example.MyPlayPal.dto.CreateEventRequest;
-import com.example.MyPlayPal.dto.EventDto;
 import com.example.MyPlayPal.model.Event;
 import com.example.MyPlayPal.model.User;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,11 +26,14 @@ public interface EventService {
     // Search events by name
     List<Event> searchEventsByName(String name);
 
-    // Get upcoming events
-    //List<Event> getUpcomingEvents(LocalDateTime now);
-
     // Get events with available slots
     List<Event> getAvailableEvents();
+
+    // ✅ Get confirmed events for a specific sport that still have vacancies
+    List<Event> getAvailableConfirmedEventsBySport(Long sportId);
+
+    // ✅ Get events by venue
+    List<Event> getEventsByVenue(Long venueId);
 
     // Update event details
     Event updateEvent(Event event);

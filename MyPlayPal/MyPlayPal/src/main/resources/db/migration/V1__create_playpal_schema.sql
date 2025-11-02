@@ -105,12 +105,14 @@ CREATE TABLE bookings (
 );
 
 -- ================================================
--- EVENTS TABLE
+-- EVENTS TABLE (UPDATED)
 -- ================================================
 CREATE TABLE events (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     event_name VARCHAR(150) NOT NULL,
     organizer_user_id BIGINT,
+    sport_id BIGINT,
+    venue_id BIGINT,  -- ✅ NEW COLUMN for linking event to venue
     booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     max_players INT,
     current_players INT DEFAULT 0,
@@ -119,9 +121,18 @@ CREATE TABLE events (
     entry_fee DECIMAL(10,2),
     status VARCHAR(20) DEFAULT 'PENDING',
     total_amount DECIMAL(10,2),
+
     CONSTRAINT fk_event_organizer FOREIGN KEY (organizer_user_id)
         REFERENCES users(id)
-        ON DELETE SET NULL
+        ON DELETE SET NULL,
+
+    CONSTRAINT fk_event_sport FOREIGN KEY (sport_id)
+        REFERENCES sports(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_event_venue FOREIGN KEY (venue_id)  -- ✅ NEW FOREIGN KEY
+        REFERENCES venues(id)
+        ON DELETE CASCADE
 );
 
 -- ================================================

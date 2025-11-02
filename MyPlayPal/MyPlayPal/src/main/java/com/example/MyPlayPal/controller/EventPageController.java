@@ -30,13 +30,22 @@ public class EventPageController {
     private final VenueRepository venueRepository;
     private final UserRepository userRepository;
 
+    // ✅ 1️⃣ Updated to show only CONFIRMED events
     @GetMapping("/events")
     public String eventsPage(Model model) {
-        List<Event> events = eventService.getAllEvents();
+        // ✅ Use your existing method to fetch only CONFIRMED events
+        List<Event> events = eventService.getEventsByStatus(Event.EventStatus.CONFIRMED);
+
         model.addAttribute("events", events);
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        boolean isLoggedIn = auth != null && auth.isAuthenticated() && !(auth instanceof AnonymousAuthenticationToken);
+        model.addAttribute("isLoggedIn", isLoggedIn);
+
         return "events";
     }
 
+    // ✅ 2️⃣ Keep this as-is (shows event details)
     @GetMapping("/events/{id}")
     public String eventDetailsPage(@PathVariable Long id, Model model) {
         Event event = eventService.getEventById(id)
@@ -60,6 +69,7 @@ public class EventPageController {
         return "event-details";
     }
 
+    // ✅ 3️⃣ Keep event creation methods unchanged
     @GetMapping("/events/create")
     public String createEventPage(Model model) {
         List<VenueDto> venues = venueService.listAllVenues();

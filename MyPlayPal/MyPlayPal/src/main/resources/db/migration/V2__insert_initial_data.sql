@@ -63,10 +63,10 @@ VALUES
 -- ===========================================================
 -- EVENTS
 -- ===========================================================
-INSERT INTO events (event_name, organizer_user_id, booking_date, max_players, current_players, description, skill_level_required, entry_fee, status, total_amount)
+INSERT INTO events (event_name, organizer_user_id, sport_id, venue_id, booking_date, max_players, current_players, description, skill_level_required, entry_fee, status, total_amount)
 VALUES
-('Morning Football Match', 3, NOW(), 22, 10, 'Friendly football match at Eastside Arena', 'Intermediate', 100.00, 'CONFIRMED', 2200.00),
-('Evening Badminton Doubles', 2, NOW(), 8, 4, 'Doubles match for club members', 'Beginner', 50.00, 'PENDING', 400.00);
+('Morning Football Match', 3, 3, 2, NOW(), 22, 10, 'Friendly football match at Eastside Arena', 'Intermediate', 100.00, 'CONFIRMED', 2200.00),
+('Evening Badminton Doubles', 2, 2, 1, NOW(), 8, 4, 'Doubles match for club members', 'Beginner', 50.00, 'PENDING', 400.00);
 
 -- ===========================================================
 -- EVENT SLOTS

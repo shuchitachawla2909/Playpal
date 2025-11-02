@@ -2,18 +2,14 @@ package com.example.MyPlayPal.repository;
 
 import com.example.MyPlayPal.model.Event;
 import com.example.MyPlayPal.model.User;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.example.MyPlayPal.model.Venue;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.List;
 
 public interface EventRepository extends JpaRepository<Event, Long> {
-
-    // Find events by sport ID
-    //List<Event> findBySportId(Long sportId);
 
     // Find all events created by a specific organizer
     List<Event> findByOrganizer(User organizer);
@@ -27,6 +23,13 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     // Get events where player slots are not full
     List<Event> findByCurrentPlayersLessThan(Integer maxPlayers);
 
-    // Fetch all upcoming events
-    //List<Event> findByStartTimeAfter(LocalDateTime dateTime);
+    // ✅ Corrected custom query for confirmed and not-full events for a sport
+    @Query("SELECT e FROM Event e WHERE e.sport.id = :sportId AND e.currentPlayers < e.maxPlayers AND e.status = :status")
+    List<Event> findBySportIdAndCurrentPlayersLessThanMaxPlayersAndStatus(
+            @Param("sportId") Long sportId,
+            @Param("status") Event.EventStatus status
+    );
+
+    // Find events by venue
+    List<Event> findByVenue(Venue venue);
 }

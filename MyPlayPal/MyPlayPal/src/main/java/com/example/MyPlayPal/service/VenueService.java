@@ -1,6 +1,7 @@
 package com.example.MyPlayPal.service;
 
 import com.example.MyPlayPal.dto.*;
+import com.example.MyPlayPal.model.Venue;
 
 import java.util.List;
 

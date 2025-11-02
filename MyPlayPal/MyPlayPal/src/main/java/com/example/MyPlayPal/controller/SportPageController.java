@@ -4,6 +4,7 @@ import com.example.MyPlayPal.service.SportService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
 @Controller
 public class SportPageController {
@@ -20,5 +21,18 @@ public class SportPageController {
         model.addAttribute("sports", sportService.listAll());
         return "games"; // Thymeleaf template name: games.html
     }
+
+    @GetMapping("/games/{id}")
+    public String showGameDetailPage(@PathVariable Long id, Model model) {
+        var sport = sportService.getById(id);
+        var venues = sportService.getVenuesBySport(id);
+        var events = sportService.getAvailableEventsBySport(id);
+
+        model.addAttribute("sport", sport);
+        model.addAttribute("venues", venues);
+        model.addAttribute("events", events);
+        return "game-detail"; // maps to game-detail.html
+    }
+
 }
 
