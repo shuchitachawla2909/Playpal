@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Payment | MyPlayPal</title>
+
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: "Poppins", sans-serif;
+            background-color: #f8fafc;
+        }
+        .payment-container {
+            max-width: 650px;
+            margin: 80px auto;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            padding: 30px 40px;
+        }
+        h2 {
+            color: #222;
+            font-size: 1.8rem;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .summary-box {
+            background-color: #f1f5f9;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+        }
+        .total {
+            font-weight: bold;
+            font-size: 1.2rem;
+            border-top: 1px solid #ccc;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+        .pay-btn {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            background-color: #2563eb;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .pay-btn:hover {
+            background-color: #1d4ed8;
+        }
+        .pay-btn:disabled {
+            background-color: #94a3b8;
+            cursor: not-allowed;
+        }
+        .event-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+<div class="payment-container">
+    <div style="text-align: center;">
+        <span class="event-badge">
+            <i class="fa-solid fa-calendar-check"></i> Event Venue Booking
+        </span>
+    </div>
+
+    <h2>Payment for Event Creation</h2>
+
+    <div class="summary-box">
+        <div class="summary-item">
+            <span><i class="fa-solid fa-trophy"></i> Event Name:</span>
+            <span th:text="${eventName}">Tournament Name</span>
+        </div>
+        <div class="summary-item">
+            <span><i class="fa-solid fa-map-marker-alt"></i> Venue:</span>
+            <span th:text="${venueName}">XYZ Sports Arena</span>
+        </div>
+        <div class="summary-item">
+            <span><i class="fa-solid fa-volleyball-ball"></i> Court:</span>
+            <span th:text="${courtName}">Badminton Court 1</span>
+        </div>
+        <div class="summary-item">
+            <span><i class="fa-solid fa-calendar"></i> Date:</span>
+            <span th:text="${bookingDate}">2025-11-02</span>
+        </div>
+        <div class="summary-item">
+            <span><i class="fa-solid fa-clock"></i> Time Slots:</span>
+            <span th:text="${selectedSlots}">07:00 - 08:00, 08:00 - 09:00</span>
+        </div>
+        <div class="summary-item total">
+            <span>Venue Booking Cost:</span>
+            <span th:text="'₹' + ${totalAmount}">₹400</span>
+        </div>
+    </div>
+
+    <button id="pay-btn" class="pay-btn">
+        <i class="fa-solid fa-credit-card"></i> Pay & Create Event
+    </button>
+
+    <p style="text-align: center; color: #666; font-size: 0.9rem; margin-top: 15px;">
+        <i class="fa-solid fa-info-circle"></i>
+        This payment is for venue booking only. Participants will pay entry fees separately.
+    </p>
+</div>
+
+<!-- Load Razorpay SDK -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script th:inline="javascript">
+    const payBtn = document.getElementById("pay-btn");
+
+    // Get payment data from Thymeleaf
+    const paymentData = {
+        amount: [[${totalAmount}]],
+        eventName: '[[${eventName}]]',
+        venueName: '[[${venueName}]]',
+        courtName: '[[${courtName}]]',
+        date: '[[${bookingDate}]]',
+        slots: '[[${selectedSlots}]]',
+        eventData: '[[${eventData}]]' // JSON string containing all event details
+    };
+
+    console.log("💳 Event Payment Data:", paymentData);
+
+    payBtn.addEventListener("click", async function (e) {
+        e.preventDefault();
+        console.log("🔘 Pay button clicked for event creation");
+
+        payBtn.disabled = true;
+        payBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
+
+        const totalAmount = paymentData.amount;
+
+        try {
+            console.log("📡 Creating Razorpay order...");
+
+            // Create Razorpay order
+            const response = await fetch('/api/payment/create-order', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    amount: totalAmount,
+                    bookingId: 0 // Not a regular booking
+                })
+            });
+
+            console.log("📥 Response status:", response.status);
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error("❌ Server error:", errorText);
+                throw new Error(`Order creation failed: ${response.status}`);
+            }
+
+            const order = await response.json();
+            console.log("✅ Razorpay order created:", order);
+
+            // Configure Razorpay checkout
+            const options = {
+                key: "rzp_test_RaUdqlIGoEQOFj", // 🔑 Replace with YOUR Razorpay test key
+                amount: order.amount,
+                currency: order.currency,
+                name: "MyPlayPal",
+                description: "Event Venue Booking - " + paymentData.eventName,
+                order_id: order.id,
+                handler: async function (response) {
+                    console.log("✅ Payment Success:", response);
+
+                    // Create event after successful payment
+                    try {
+                        const eventData = JSON.parse(paymentData.eventData);
+                        console.log("📝 Creating event with data:", eventData);
+
+                        const createEventResponse = await fetch('/api/events/create-with-venue', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(eventData)
+                        });
+
+                        if (createEventResponse.ok) {
+                            const createdEvent = await createEventResponse.json();
+                            console.log("✅ Event created:", createdEvent);
+                            alert("✅ Payment Successful! Event created.");
+                            window.location.href = `/events/${createdEvent.id}`;
+                        } else {
+                            const errorText = await createEventResponse.text();
+                            console.error("❌ Event creation failed:", errorText);
+                            alert("⚠️ Payment successful but event creation failed. Please contact support.");
+                            window.location.href = `/events`;
+                        }
+                    } catch (err) {
+                        console.error("❌ Error creating event:", err);
+                        alert("⚠️ Payment successful but event creation failed. Please contact support.");
+                        window.location.href = `/events`;
+                    }
+                },
+                prefill: {
+                    name: "Event Organizer",
+                    email: "organizer@example.com",
+                    contact: "9999999999"
+                },
+                notes: {
+                    event_name: paymentData.eventName,
+                    venue: paymentData.venueName,
+                    court: paymentData.courtName
+                },
+                theme: {
+                    color: "#667eea"
+                },
+                modal: {
+                    ondismiss: function() {
+                        console.log("⚠️ Payment cancelled by user");
+                        payBtn.disabled = false;
+                        payBtn.innerHTML = '<i class="fa-solid fa-credit-card"></i> Pay & Create Event';
+                    }
+                }
+            };
+
+            console.log("🚀 Opening Razorpay checkout...");
+
+            if (typeof Razorpay === 'undefined') {
+                throw new Error("Razorpay SDK not loaded!");
+            }
+
+            const razorpay = new Razorpay(options);
+
+            razorpay.on('payment.failed', function (response) {
+                console.error("❌ Payment failed:", response.error);
+                alert("⚠️ Payment Failed: " + response.error.description);
+                payBtn.disabled = false;
+                payBtn.innerHTML = '<i class="fa-solid fa-credit-card"></i> Pay & Create Event';
+            });
+
+            razorpay.open();
+
+        } catch (error) {
+            console.error("❌ Payment error:", error);
+            alert("⚠️ Payment could not be started. Please try again.");
+            payBtn.disabled = false;
+            payBtn.innerHTML = '<i class="fa-solid fa-credit-card"></i> Pay & Create Event';
+        }
+    });
+</script>
+
+</body>
+</html>

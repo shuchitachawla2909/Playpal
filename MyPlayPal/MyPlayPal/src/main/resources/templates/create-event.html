@@ -407,6 +407,8 @@
         return `${displayHour}:${minutes.toString().padStart(2, '0')} ${ampm}`;
     }
 
+    // Replace the form submission section in your create-event.html with this:
+
     document.getElementById('event-form').addEventListener('submit', async function(e) {
         e.preventDefault();
 
@@ -430,7 +432,10 @@
         };
 
         try {
-            const response = await fetch('/api/events/create-with-venue', {
+            console.log('📝 Preparing payment for event:', eventData);
+
+            // Step 1: Call prepare-payment to calculate cost
+            const response = await fetch('/api/events/prepare-payment', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -439,17 +444,34 @@
                 body: JSON.stringify(eventData)
             });
 
-            if (response.ok) {
-                const event = await response.json();
-                window.location.href = `/events/${event.id}`;
-            } else {
+            if (!response.ok) {
                 const error = await response.text();
-                alert('Failed to create event: ' + error);
-                submitBtn.classList.remove('loading');
+                throw new Error('Failed to prepare payment: ' + error);
             }
+
+            const paymentData = await response.json();
+            console.log('💳 Payment data received:', paymentData);
+
+            // Step 2: Encode event data as JSON string for URL
+            const eventDataJson = encodeURIComponent(JSON.stringify(eventData));
+
+            // Step 3: Redirect to payment page with all details
+            const paymentUrl =
+                `/api/event-payment/page?` +
+                `amount=${paymentData.totalAmount}` +
+                `&eventName=${encodeURIComponent(paymentData.eventName)}` +
+                `&venueName=${encodeURIComponent(paymentData.venueName)}` +
+                `&courtName=${encodeURIComponent(paymentData.courtName)}` +
+                `&bookingDate=${encodeURIComponent(paymentData.bookingDate)}` +
+                `&selectedSlots=${encodeURIComponent(paymentData.selectedSlots)}` +
+                `&eventData=${eventDataJson}`;
+
+            console.log('🔀 Redirecting to payment page...');
+            window.location.href = paymentUrl;
+
         } catch (error) {
-            console.error('Error:', error);
-            alert('An error occurred while creating the event');
+            console.error('❌ Error:', error);
+            alert('An error occurred while preparing payment: ' + error.message);
             submitBtn.classList.remove('loading');
         }
     });
