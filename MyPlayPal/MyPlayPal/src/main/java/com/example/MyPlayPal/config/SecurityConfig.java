@@ -55,7 +55,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/manager/**").hasRole("MANAGER")
                         .requestMatchers("/user/**").hasRole("USER")
-
+                        .requestMatchers("/api/friends/**").authenticated()
                         // ✅ Protect booking routes
                         .requestMatchers("/venues/*/book/**", "/bookings/**", "/api/bookings/**").authenticated()
 

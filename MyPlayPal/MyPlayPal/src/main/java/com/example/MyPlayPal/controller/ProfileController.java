@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import com.example.MyPlayPal.service.BookingService;
 import com.example.MyPlayPal.dto.BookingDto;
 import java.util.List;
+import com.example.MyPlayPal.service.FriendService;
 
 @Controller
 @RequiredArgsConstructor
@@ -25,6 +26,7 @@ public class ProfileController {
     private final EventService eventService;
     private final EventParticipantService participantService;
     private final BookingService bookingService;
+    private final FriendService friendService;
 
     @GetMapping("/profile")
     public String profilePage(Model model) {
@@ -42,11 +44,14 @@ public class ProfileController {
         List<Event> eventsCreated = eventService.getEventsByOrganizer(user);
         List<Event> eventsJoined = participantService.getEventsJoinedByUser(user);
         List<BookingDto> userBookings = bookingService.getBookingsByUserId(user.getId());
+        List<User> myFriends = friendService.getMyFriends(user);
+        model.addAttribute("myFriends", myFriends);
 
         model.addAttribute("user", user);
         model.addAttribute("eventsCreated", eventsCreated);
         model.addAttribute("eventsJoined", eventsJoined);
         model.addAttribute("userBookings", userBookings);
+        model.addAttribute("myFriends", myFriends);
         return "profile";
     }
 }

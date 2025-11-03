@@ -1,0 +1,6 @@
+CREATE TABLE friend (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    friend_id BIGINT NOT NULL,
+    seen BOOLEAN DEFAULT FALSE
+);

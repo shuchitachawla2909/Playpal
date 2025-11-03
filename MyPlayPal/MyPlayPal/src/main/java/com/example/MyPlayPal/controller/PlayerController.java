@@ -43,7 +43,7 @@ public class PlayerController {
                 .collect(Collectors.groupingBy(UserSport::getUser));
 
         model.addAttribute("playersGrouped", playersGrouped);
-
+        model.addAttribute("currentUser", currentUser);
         return "players";
     }
 }

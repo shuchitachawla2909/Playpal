@@ -10,20 +10,23 @@ import com.example.MyPlayPal.repository.SportRepository;
 import com.example.MyPlayPal.repository.UserRepository;
 import com.example.MyPlayPal.repository.UserSportRepository;
 import com.example.MyPlayPal.service.UserSportService;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class UserSportServiceImpl implements UserSportService {
 
     private final UserSportRepository userSportRepository;
     private final UserRepository userRepository;
     private final SportRepository sportRepository;
 
-    // ✅ Constructor injection
     public UserSportServiceImpl(UserSportRepository userSportRepository,
                                 UserRepository userRepository,
                                 SportRepository sportRepository) {
@@ -32,16 +35,24 @@ public class UserSportServiceImpl implements UserSportService {
         this.sportRepository = sportRepository;
     }
 
-    // ✅ Fetch all players except current user
+    // ✅ Fetch all players except current user (with eager load to avoid LazyInitializationException)
     @Override
     @Transactional(readOnly = true)
     public List<UserSport> getAllOtherPlayers(Long currentUserId) {
-        return userSportRepository.findAllExceptCurrentUser(currentUserId);
+        List<UserSport> players = userSportRepository.findAllExceptCurrentUser(currentUserId);
+
+        // Ensure user and sport details are initialized
+        players.forEach(us -> {
+            us.getUser().getUsername();
+            us.getUser().getContact();
+            us.getSport().getSportname();
+        });
+
+        return players;
     }
 
-    // ✅ Add or update user sport entry
+    // ✅ Add or update user sport
     @Override
-    @Transactional
     public UserSportDto addUserSport(CreateUserSportRequest req) {
         User user = userRepository.findById(req.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -49,19 +60,9 @@ public class UserSportServiceImpl implements UserSportService {
                 .orElseThrow(() -> new ResourceNotFoundException("Sport not found"));
 
         var existing = userSportRepository.findByUserIdAndSportId(user.getId(), sport.getId());
-        UserSport userSport;
+        UserSport userSport = existing.orElseGet(() -> new UserSport(null, user, sport, req.getSkillLevel()));
 
-        if (existing.isPresent()) {
-            userSport = existing.get();
-            userSport.setSkillLevel(req.getSkillLevel());
-        } else {
-            userSport = UserSport.builder()
-                    .user(user)
-                    .sport(sport)
-                    .skillLevel(req.getSkillLevel())
-                    .build();
-        }
-
+        userSport.setSkillLevel(req.getSkillLevel());
         UserSport saved = userSportRepository.save(userSport);
 
         return UserSportDto.builder()
@@ -72,7 +73,7 @@ public class UserSportServiceImpl implements UserSportService {
                 .build();
     }
 
-    // ✅ List all sports associated with a particular user
+    // ✅ List all sports associated with a user
     @Override
     @Transactional(readOnly = true)
     public List<UserSportDto> listByUser(Long userId) {
@@ -84,5 +85,54 @@ public class UserSportServiceImpl implements UserSportService {
                         .skillLevel(us.getSkillLevel())
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    // ✅ Link a user to a sport with random skill level (if not already linked)
+    @Override
+    public void linkUserToSport(Long userId, Long sportId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        Sport sport = sportRepository.findById(sportId)
+                .orElseThrow(() -> new ResourceNotFoundException("Sport not found"));
+
+        var existing = userSportRepository.findByUserIdAndSportId(userId, sportId);
+        if (existing.isPresent()) return;
+
+        String[] levels = {"Beginner", "Intermediate", "Advanced"};
+        String randomSkillLevel = levels[new Random().nextInt(levels.length)];
+
+        UserSport userSport = UserSport.builder()
+                .user(user)
+                .sport(sport)
+                .skillLevel(randomSkillLevel)
+                .build();
+
+        userSportRepository.save(userSport);
+    }
+
+    // ✅ Add user sport for currently logged-in user
+    @Override
+    public void addUserSportForCurrentUser(Long sportId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            throw new RuntimeException("User not authenticated");
+        }
+
+        String username = auth.getName();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        Sport sport = sportRepository.findById(sportId)
+                .orElseThrow(() -> new RuntimeException("Sport not found"));
+
+        boolean exists = userSportRepository.existsByUserAndSport(user, sport);
+        if (!exists) {
+            UserSport userSport = UserSport.builder()
+                    .user(user)
+                    .sport(sport)
+                    .skillLevel("Any") // default value
+                    .build();
+            userSportRepository.save(userSport);
+        }
     }
 }
