@@ -14,23 +14,15 @@
         }
 
         .page-header {
-            background-color: #222;
+            background-color: var(--primary-color);
             color: #fff;
             text-align: center;
             padding: 60px 20px;
         }
 
         .page-header h1 {
-            font-size: 2.5em;
-            margin: 0;
-        }
-
-        .page-header a {
-            color: #28a745;
-            text-decoration: none;
-            display: inline-block;
-            margin-top: 10px;
-            font-weight: bold;
+            font-size: 2.4rem;
+            margin-bottom: 10px;
         }
 
         .page-section {
@@ -98,7 +90,7 @@
         .book-btn {
             display: inline-block;
             padding: 8px 16px;
-            background-color: #28a745;
+            background-color: var(--secondary-color);
             color: white;
             border-radius: 8px;
             text-decoration: none;
@@ -107,13 +99,13 @@
         }
 
         .book-btn:hover {
-            background-color: #218838;
+            background-color: #e67e22;
         }
 
         /* Rating badge */
         .rating-badge {
             position: absolute;
-            bottom: 10px;
+            top: 10px;
             right: 10px;
             color: white;
             padding: 4px 8px;
@@ -136,7 +128,7 @@
         }
 
         footer {
-            background-color: #222;
+            background-color: var(--primary-color);
             color: white;
             text-align: center;
             padding: 20px;
@@ -215,7 +207,6 @@
 <!-- ✅ Page Header -->
 <section class="page-header">
     <h1 th:text="${sport.sportname}">Sport Name</h1>
-    <a th:href="@{/games}">← Back to Sports</a>
 </section>
 
 <!-- ✅ Venues Section -->
