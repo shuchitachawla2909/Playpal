@@ -35,6 +35,14 @@ public class CourtSlotServiceImpl implements CourtSlotService {
         Court court = courtRepository.findById(req.getCourtId())
                 .orElseThrow(() -> new ResourceNotFoundException("Court not found"));
 
+        // ✅ Check if slot already exists
+        boolean exists = slotRepository.existsByCourtIdAndStartTimeAndEndTime(
+                req.getCourtId(), req.getStartTime(), req.getEndTime());
+
+        if (exists) {
+            throw new IllegalStateException("Slot already exists for this court and time.");
+        }
+
         CourtSlot slot = CourtSlot.builder()
                 .court(court)
                 .startTime(req.getStartTime())
@@ -131,5 +139,17 @@ public class CourtSlotServiceImpl implements CourtSlotService {
                         .build())
                 .collect(Collectors.toList());
     }
+    @Override
+    @Transactional(readOnly = true)
+    public List<CourtSlot> getSlotsByCourtId(Long courtId) {
+        return slotRepository.findByCourtIdOrderByStartTimeAsc(courtId);
+    }
+
+    @Override
+    @Transactional
+    public void deleteSlotById(Long slotId) {
+        slotRepository.deleteById(slotId);
+    }
+
 
 }

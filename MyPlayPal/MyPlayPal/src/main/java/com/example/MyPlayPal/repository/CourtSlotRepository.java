@@ -67,5 +67,8 @@ public interface CourtSlotRepository extends JpaRepository<CourtSlot, Long> {
             "AND DATE(s.startTime) = :date AND s.status = 'AVAILABLE'")
     List<CourtSlot> findAvailableSlotsByCourtAndDate(@Param("courtId") Long courtId,
                                                      @Param("date") LocalDate date);
+    boolean existsByCourtIdAndStartTimeAndEndTime(Long courtId, LocalDateTime startTime, LocalDateTime endTime);
+    List<CourtSlot> findByCourtIdOrderByStartTimeAsc(Long courtId);
+
 
 }

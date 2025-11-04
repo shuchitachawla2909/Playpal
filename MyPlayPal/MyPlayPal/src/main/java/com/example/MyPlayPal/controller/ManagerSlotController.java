@@ -2,21 +2,27 @@ package com.example.MyPlayPal.controller;
 
 import com.example.MyPlayPal.dto.SlotTemplateRequest;
 import com.example.MyPlayPal.model.Court;
+import com.example.MyPlayPal.model.CourtSlot;
 import com.example.MyPlayPal.repository.CourtRepository;
+import com.example.MyPlayPal.service.CourtSlotService;
 import com.example.MyPlayPal.service.SlotService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Controller
 @RequestMapping("/manager/slots")
 public class ManagerSlotController {
 
     private final SlotService slotService;
+    private final CourtSlotService courtslotService;
     private final CourtRepository courtRepo;
 
-    public ManagerSlotController(SlotService slotService, CourtRepository courtRepo) {
+    public ManagerSlotController(SlotService slotService, CourtRepository courtRepo,CourtSlotService courtslotService) {
         this.slotService = slotService;
+        this.courtslotService = courtslotService;
         this.courtRepo = courtRepo;
     }
 
@@ -52,4 +58,23 @@ public class ManagerSlotController {
         model.addAttribute("request", new SlotTemplateRequest());
         return "create-slot-template";
     }
+    @GetMapping("/view/{courtId}")
+    public String viewSlotsForCourt(@PathVariable Long courtId, Model model) {
+        Court court = courtRepo.findById(courtId)
+                .orElseThrow(() -> new RuntimeException("Court not found"));
+
+        // fetch all slots for this court
+        List<CourtSlot> slots = courtslotService.getSlotsByCourtId(courtId);
+
+        model.addAttribute("court", court);
+        model.addAttribute("slots", slots);
+        return "view-slots"; // new HTML page
+    }
+
+    @PostMapping("/delete/{slotId}")
+    public String deleteSlot(@PathVariable Long slotId, @RequestParam Long courtId) {
+        courtslotService.deleteSlotById(slotId);
+        return "redirect:/manager/slots/view/" + courtId;
+    }
+
 }

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="'Slots for ' + ${court.courtname}">View Slots</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        body {
+            font-family: "Segoe UI", sans-serif;
+            background-color: #f7f9fc;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #2d3e50;
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 2rem auto;
+            background-color: white;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn {
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .btn-secondary {
+            background-color: #555;
+            color: white;
+        }
+
+        .btn-danger {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            text-align: center;
+            padding: 0.8rem;
+        }
+
+        th {
+            background-color: #34495e;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        .no-slots {
+            text-align: center;
+            font-size: 1.1rem;
+            color: #777;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1 th:text="'Slots for ' + ${court.courtname}"></h1>
+    <a th:href="@{/manager/dashboard}" style="color: white; text-decoration: none;">🏠 Dashboard</a>
+</header>
+
+<div class="container">
+
+    <a th:href="@{/manager/venues/{venueId}(venueId=${court.venue.id})}" class="btn btn-secondary">← Back to Venue</a>
+
+    <div th:if="${#lists.isEmpty(slots)}" class="no-slots">
+        <p>No slots created yet for this court.</p>
+    </div>
+
+    <table th:if="${!#lists.isEmpty(slots)}">
+        <thead>
+        <tr>
+            <th>Date</th>
+            <th>Start Time</th>
+            <th>End Time</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="slot : ${slots}">
+            <td th:text="${#temporals.format(slot.startTime, 'yyyy-MM-dd')}"></td>
+            <td th:text="${#temporals.format(slot.startTime, 'HH:mm')}"></td>
+            <td th:text="${#temporals.format(slot.endTime, 'HH:mm')}"></td>
+            <td th:text="${slot.status}"></td>
+            <td>
+                <form th:action="@{/manager/slots/delete/{slotId}(slotId=${slot.id})}" method="post">
+                    <input type="hidden" name="courtId" th:value="${court.id}"/>
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>
