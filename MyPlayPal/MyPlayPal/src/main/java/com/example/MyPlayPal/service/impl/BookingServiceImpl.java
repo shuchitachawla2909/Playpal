@@ -6,6 +6,8 @@ import com.example.MyPlayPal.exception.ResourceNotFoundException;
 import com.example.MyPlayPal.model.*;
 import com.example.MyPlayPal.repository.*;
 import com.example.MyPlayPal.service.BookingService;
+import com.example.MyPlayPal.service.EmailService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +17,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,6 +28,9 @@ public class BookingServiceImpl implements BookingService {
     private final PaymentTransactionRepository paymentRepo;
     private final CourtRepository courtRepo;
     private final CourtSlotRepository slotRepo;
+
+    @Autowired
+    private EmailService emailService;
 
     public BookingServiceImpl(
             CourtSlotRepository slotRepo,
@@ -93,6 +99,32 @@ public class BookingServiceImpl implements BookingService {
                 .build();
 
         paymentRepo.save(transaction);
+
+        // sending email part
+        try {
+            String htmlTemplate = new String(
+                    Objects.requireNonNull(
+                            getClass().getClassLoader().getResourceAsStream("templates/booking-confirmation-template.html")
+                    ).readAllBytes()
+            );
+
+            htmlTemplate = htmlTemplate
+                    .replace("{{username}}", user.getUsername())
+                    .replace("{{courtName}}", slot.getCourt().getCourtname())
+                    .replace("{{bookingDate}}", req.getBookingDate().toString())
+                    .replace("{{startTime}}", req.getStartTime().toString())
+                    .replace("{{endTime}}", req.getStartTime().plusHours(1).toString())
+                    .replace("{{amount}}", totalAmount.toString());
+
+            emailService.sendBookingConfirmation(
+                    user.getEmail(),
+                    "Booking Confirmed: " + slot.getCourt().getCourtname(),
+                    htmlTemplate
+            );
+        } catch (Exception e) {
+            e.printStackTrace(); // optional logging
+        }
+
 
         // --- 7. Convert to DTO and Return ---
         return toDto(savedBooking);

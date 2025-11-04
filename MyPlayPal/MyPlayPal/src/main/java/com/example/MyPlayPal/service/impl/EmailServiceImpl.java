@@ -1,9 +1,12 @@
 package com.example.MyPlayPal.service.impl;
 
 import com.example.MyPlayPal.service.EmailService;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -12,7 +15,7 @@ public class EmailServiceImpl implements EmailService {
     @Autowired
     private JavaMailSender mailSender;
 
-    // You can keep admin email in application.properties instead of hardcoding it
+    // Ideally move this to application.properties later
     private static final String ADMIN_EMAIL = "youradminemail@gmail.com";
 
     @Override
@@ -36,4 +39,33 @@ public class EmailServiceImpl implements EmailService {
             System.err.println("❌ Failed to send admin notification: " + e.getMessage());
         }
     }
+
+    @Override
+    public void sendBookingConfirmation(String toEmail, String subject, String htmlContent)
+            throws MessagingException {
+        sendHtmlEmail(toEmail, subject, htmlContent);
+    }
+
+    @Override
+    public void sendBookingCancellation(String toEmail, String subject, String htmlContent)
+            throws MessagingException {
+        sendHtmlEmail(toEmail, subject, htmlContent);
+    }
+
+    /**
+     * Utility method to send any HTML email using JavaMailSender.
+     */
+    private void sendHtmlEmail(String toEmail, String subject, String htmlContent)
+            throws MessagingException {
+
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+        helper.setTo(toEmail);
+        helper.setSubject(subject);
+        helper.setText(htmlContent, true); // true enables HTML content
+
+        mailSender.send(message);
+    }
 }
+

@@ -15,7 +15,7 @@
             <span>PlayPal</span>
         </div>
         <div class="nav-menu" id="nav-menu">
-            <a th:href="@{/}" class="nav-link">Home</a>
+            <a th:href="@{/}" class="nav-link active">Home</a>
             <a th:href="@{/venues}" class="nav-link">Book</a>
             <a th:href="@{/events}" class="nav-link">Events</a>
             <a th:href="@{/games}" class="nav-link">Games</a>
@@ -27,9 +27,7 @@
                 <div sec:authorize="isAuthenticated()" class="mydiv">
 
                     <a sec:authorize="hasRole('USER')" th:href="@{/profile}" class="nav-link">
-                        <img th:src="${currentUser != null and currentUser.profilePictureUrl != null} ?
-              ${currentUser.profilePictureUrl} :
-              @{/images/default-avatar.jpeg}"
+                        <img th:src="${currentUser!=null and currentUser.profilePictureUrl != null} ? ${currentUser.profilePictureUrl} : @{/images/default-avatar.jpeg}"
                              alt="Profile" class="nav-avatar">
                     </a>
 
@@ -61,7 +59,6 @@
         </div>
     </div>
 </nav>
-
 
 <section class="profile-section">
     <div class="container" style="max-width: 1000px;">

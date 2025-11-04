@@ -7,7 +7,6 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="dbms" />
       </profile>
       <profile name="Annotation profile for MyPlayPal" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
