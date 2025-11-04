@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Booking Confirmation</title>
+    <style>
+        body { font-family: Arial, sans-serif; color: #333; }
+        .container { max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .header { background: #2196f3; color: white; padding: 10px; text-align: center; border-radius: 8px 8px 0 0; }
+        .details { margin: 20px 0; }
+        .footer { font-size: 0.9em; color: #777; text-align: center; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h2>Your Booking is Confirmed!</h2>
+    </div>
+    <div class="details">
+        <p>Hi <b>{{username}}</b>,</p>
+        <p>We’re excited to let you know that your court booking has been confirmed.</p>
+        <table>
+            <tr><td><b>Court:</b></td><td>{{courtName}}</td></tr>
+            <tr><td><b>Date:</b></td><td>{{bookingDate}}</td></tr>
+            <tr><td><b>Start Time:</b></td><td>{{startTime}}</td></tr>
+            <tr><td><b>End Time:</b></td><td>{{endTime}}</td></tr>
+            <tr><td><b>Total Amount:</b></td><td>₹{{amount}}</td></tr>
+        </table>
+    </div>
+    <div class="footer">
+        <p>Thank you for booking with us!</p>
+        <p>— Team Playo-Like</p>
+    </div>
+</div>
+</body>
+</html>

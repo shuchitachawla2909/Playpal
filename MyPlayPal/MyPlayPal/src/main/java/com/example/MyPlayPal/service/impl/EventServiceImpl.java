@@ -7,8 +7,11 @@ import com.example.MyPlayPal.model.Venue;
 import com.example.MyPlayPal.repository.EventParticipantRepository;
 import com.example.MyPlayPal.repository.EventRepository;
 import com.example.MyPlayPal.repository.VenueRepository;
+import com.example.MyPlayPal.service.EmailService;
 import com.example.MyPlayPal.service.EventService;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,13 +27,51 @@ public class EventServiceImpl implements EventService {
     private final EventParticipantRepository participantRepository;
     private final VenueRepository venueRepository; // For venue-based event fetching
 
+    @Autowired
+    private EmailService emailService;
+
+
     @Override
     public Event createEvent(Event event) {
         // Initialize event defaults
         event.setCurrentPlayers(0);
         event.setStatus(Event.EventStatus.PENDING);
-        return eventRepository.save(event);
+
+        Event savedEvent = eventRepository.save(event);
+
+        // --- Send email to the organizer ---
+        String toEmail = savedEvent.getOrganizer().getEmail();
+        String subject = "✅ Your Event Has Been Created Successfully!";
+
+        String htmlContent = "<!DOCTYPE html>"
+                + "<html>"
+                + "<body style='font-family: Arial, sans-serif; color: #333;'>"
+                + "<h2 style='color: #2E86C1;'>Event Confirmation</h2>"
+                + "<p>Hi <b>" + savedEvent.getOrganizer().getUsername() + "</b>,</p>"
+                + "<p>Your event <b>" + savedEvent.getEventName() + "</b> has been created successfully.</p>"
+                + "<table style='border-collapse: collapse; width: 100%;'>"
+                + "<tr><td style='padding: 8px; border: 1px solid #ddd;'><b>Date:</b></td>"
+                + "<td style='padding: 8px; border: 1px solid #ddd;'>" + savedEvent.getBookingDate() + "</td></tr>"
+                + "<tr><td style='padding: 8px; border: 1px solid #ddd;'><b>Max Players:</b></td>"
+                + "<td style='padding: 8px; border: 1px solid #ddd;'>" + savedEvent.getMaxPlayers() + "</td></tr>"
+                + "<tr><td style='padding: 8px; border: 1px solid #ddd;'><b>Entry Fee:</b></td>"
+                + "<td style='padding: 8px; border: 1px solid #ddd;'>₹"
+                + (savedEvent.getEntryFee() != null ? savedEvent.getEntryFee() : "0") + "</td></tr>"
+                + "</table>"
+                + "<p style='margin-top: 20px;'>Thank you for organizing your event with us!</p>"
+                + "<p style='color: #888;'>– Avenue Events Team</p>"
+                + "</body></html>";
+
+        try {
+            emailService.sendBookingConfirmation(toEmail, subject, htmlContent);
+        } catch (MessagingException e) {
+            e.printStackTrace();
+        }
+
+        return savedEvent;
     }
+
+
 
     @Override
     public Optional<Event> getEventById(Long eventId) {
