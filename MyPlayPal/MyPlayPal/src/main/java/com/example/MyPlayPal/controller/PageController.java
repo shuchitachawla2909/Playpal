@@ -17,19 +17,9 @@ public class PageController {
         return "about"; // maps to templates/about.html
     }
 
-    @GetMapping("/contact")
-    public String contact() {
-        return "contact"; // maps to templates/contact.html
-    }
-
-//    @GetMapping("/games")
-//    public String games() {
-//        return "games"; // maps to templates/games.html
-//    }
-
-//    @GetMapping("/venues")
-//    public String venues() {
-//        return "venues"; // maps to templates/venues.html
+//    @GetMapping("/contact")
+//    public String contact() {
+//        return "contact"; // maps to templates/contact.html
 //    }
 
 }

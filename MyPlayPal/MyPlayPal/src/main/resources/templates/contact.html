@@ -8,6 +8,53 @@
     <!-- CSS -->
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        /* Popup Modal Styling */
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed;
+  z-index: 9999;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  background-color: #fff;
+  margin: 15% auto;
+  padding: 25px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  animation: popupFade 0.3s ease;
+}
+
+.modal-btn {
+  margin-top: 15px;
+  padding: 8px 18px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.modal-btn:hover {
+  background-color: #0056b3;
+}
+
+@keyframes popupFade {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+    </style>
 </head>
 <body>
 <!-- Navigation -->
@@ -116,20 +163,24 @@
                 <form id="contact-form" class="contact-form">
                     <div class="form-group">
                         <label for="contact-name">Name</label>
-                        <input type="text" id="contact-name" required>
+                        <input type="text" id="contact-name" name="name" required>
                     </div>
+
                     <div class="form-group">
                         <label for="contact-email">Email</label>
-                        <input type="email" id="contact-email" required>
+                        <input type="email" id="contact-email" name="email" required>
                     </div>
+
                     <div class="form-group">
                         <label for="contact-subject">Subject</label>
-                        <input type="text" id="contact-subject" required>
+                        <input type="text" id="contact-subject" name="subject" required>
                     </div>
+
                     <div class="form-group">
                         <label for="contact-message">Message</label>
-                        <textarea id="contact-message" rows="5" required></textarea>
+                        <textarea id="contact-message" name="message" rows="5" required></textarea>
                     </div>
+
                     <button type="submit" class="submit-btn">
                         <span class="btn-text">Send Message</span>
                         <span class="btn-loader" style="display: none;">
@@ -137,6 +188,17 @@
                             </span>
                     </button>
                 </form>
+
+                <!-- Success Modal -->
+                <div id="successModal" class="modal">
+                    <div class="modal-content">
+                        <h3>✅ Message Sent Successfully!</h3>
+                        <p>Thank you for reaching out to us. We'll get back to you soon.</p>
+                        <button id="closeModal" class="modal-btn">OK</button>
+                    </div>
+                </div>
+
+
             </div>
         </div>
     </div>
@@ -156,8 +218,67 @@
 </footer>
 
 <!-- JS -->
-<script th:src="@{/js/api.js}"></script>
-<script th:src="@{/js/script.js}"></script>
-<script th:src="@{/js/contact.js}"></script>
+<script th:inline="javascript">
+    document.getElementById('contact-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const btnText = document.querySelector('.btn-text');
+        const btnLoader = document.querySelector('.btn-loader');
+        btnText.style.display = 'none';
+        btnLoader.style.display = 'inline-block';
+
+        const data = {
+            name: document.getElementById('contact-name').value.trim(),
+            email: document.getElementById('contact-email').value.trim(),
+            subject: document.getElementById('contact-subject').value.trim(),
+            message: document.getElementById('contact-message').value.trim()
+        };
+
+        try {
+            const response = await fetch('/contact/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                // Show the popup modal
+                const modal = document.getElementById('successModal');
+                modal.style.display = 'block';
+
+                // Reset form
+                document.getElementById('contact-form').reset();
+            } else if (response.status === 403) {
+                alert('⚠️ Access denied — check backend security config (ensure /contact/** is permitted)');
+            } else {
+                const errorText = await response.text();
+                console.error('Error:', errorText);
+                alert('⚠️ Something went wrong. Please try again.');
+            }
+        } catch (error) {
+            console.error('❌ Error submitting form:', error);
+            alert('❌ Failed to send message. Please check your internet connection.');
+        } finally {
+            btnText.style.display = 'inline-block';
+            btnLoader.style.display = 'none';
+        }
+    });
+
+    // Close modal on button click
+    document.getElementById('closeModal').addEventListener('click', function () {
+        document.getElementById('successModal').style.display = 'none';
+    });
+
+    // Close modal when clicking outside of modal content
+    window.addEventListener('click', function (event) {
+        const modal = document.getElementById('successModal');
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+</script>
+
 </body>
 </html>

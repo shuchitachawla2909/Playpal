@@ -61,15 +61,16 @@ public class SecurityConfig {
 
                         // ✅ Publicly accessible pages
                         .requestMatchers(
-                                "/", "/index", "/about", "/contact",
-                                "/venues",                 // list all venues
-                                "/venues/*",               // individual venue details
+                                "/", "/index", "/index.html", "/about", "/contact" , "/contact/**",
+                                "/venues", "/venues/*",
                                 "/games", "/events", "/events/**", "/signup", "/login",
                                 "/css/**", "/js/**", "/images/**",
                                 "/api/auth/**", "/api/events", "/api/events/**",
-                                "/api/participants/**", "/api/slots/**", "/api/reviews/by-venue/**","/payment/**",
-                                "/payment/create-order"
+                                "/api/participants/**", "/api/slots/**",
+                                "/api/reviews/by-venue/**", "/payment/**", "/payment/create-order",
+                                "/error"
                         ).permitAll()
+
                         .requestMatchers("/api/payment/**").permitAll()
 
 
@@ -90,7 +91,7 @@ public class SecurityConfig {
                 )
                 // Disable CSRF for API calls
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/api/**")
+                        .ignoringRequestMatchers("/api/**", "/contact/**")
                 );
 
         http.authenticationProvider(authenticationProvider());

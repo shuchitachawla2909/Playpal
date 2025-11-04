@@ -243,3 +243,15 @@ CREATE TABLE notifications (
         REFERENCES users(id)
         ON DELETE CASCADE
 );
+
+-- ================================================
+-- CONTACT MESSAGES TABLE
+-- ================================================
+CREATE TABLE contact_messages (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(150) NOT NULL,
+    subject VARCHAR(150) NOT NULL,
+    message TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
