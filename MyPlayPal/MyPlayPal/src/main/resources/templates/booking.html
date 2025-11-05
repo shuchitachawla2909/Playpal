@@ -193,7 +193,7 @@
         loadAvailableSlots(this.value);
     });
 
-    document.getElementById('proceed-to-payment').addEventListener('click', function() {
+    document.getElementById('proceed-to-payment').addEventListener('click', async function() {
         if (!bookingState.selectedDate) {
             alert('Please select a booking date.');
             return;
@@ -203,28 +203,60 @@
             return;
         }
 
-        const selectedSlotsFormatted = bookingState.selectedSlots
-            .map(s => new Date(s).getHours().toString().padStart(2, '0') + ':00')
-            .join(', ');
+        // ✅ FIXED Payload
+        function extractLocalTime(isoString) {
+          const date = new Date(isoString);
+          return date.toTimeString().split(' ')[0]; // "09:00:00"
+        }
 
-        const amount = bookingState.totalPrice || 0;
-        const bookingId = bookingState.bookingId || 0;  // or from createBooking response
-        const selectedDate = bookingState.selectedDate;
-        const slots = bookingState.selectedSlots.join(', ');
-        const venueName = DTO.venueName;
-        const courtName = DTO.courtName;
-
-
-        window.location.href =
-        `/api/payment/page?amount=${amount}` +
-        `&bookingId=${bookingId}` +
-        `&date=${encodeURIComponent(selectedDate)}` +
-        `&slots=${encodeURIComponent(slots)}` +
-        `&venueName=${encodeURIComponent(venueName)}` +
-        `&courtName=${encodeURIComponent(courtName)}`;
+        const payload = {
+          courtId: DTO.courtId,
+          bookingDate: bookingState.selectedDate,
+          startTime: extractLocalTime(bookingState.selectedSlots[0]),
+          endTime: extractLocalTime(bookingState.selectedSlots[bookingState.selectedSlots.length - 1]),
+          totalAmount: bookingState.selectedSlots.length * DTO.hourlyRate
+        };
 
 
+
+
+
+        try {
+            // ✅ Step 1: Create booking with status=PENDING
+            const resp = await fetch('/api/bookings/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': DTO.csrfToken
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!resp.ok) throw new Error("Booking creation failed");
+            const booking = await resp.json();   // should return bookingId
+            const bookingId = booking.id;
+            bookingState.bookingId = bookingId;
+
+            // ✅ Step 2: Redirect to payment page
+            const amount = bookingState.totalPrice;
+            const selectedDate = bookingState.selectedDate;
+            const slots = bookingState.selectedSlots.join(', ');
+            const venueName = DTO.venueName;
+            const courtName = DTO.courtName;
+
+            window.location.href =
+                `/api/payment/page?amount=${amount}` +
+                `&bookingId=${bookingId}` +
+                `&date=${encodeURIComponent(selectedDate)}` +
+                `&slots=${encodeURIComponent(slots)}` +
+                `&venueName=${encodeURIComponent(venueName)}` +
+                `&courtName=${encodeURIComponent(courtName)}`;
+        } catch (err) {
+            console.error('❌ Booking create error:', err);
+            alert('Error creating booking. Please try again.');
+        }
     });
+
 
     document.addEventListener('DOMContentLoaded', async () => {
         const dateInput = document.getElementById('booking-date');

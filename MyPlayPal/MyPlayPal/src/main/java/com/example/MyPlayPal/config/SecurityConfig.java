@@ -91,7 +91,7 @@ public class SecurityConfig {
                 )
                 // Disable CSRF for API calls
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/api/**", "/contact/**")
+                        .ignoringRequestMatchers("/api/**", "/payment/**","/contact/**")
                 );
 
         http.authenticationProvider(authenticationProvider());

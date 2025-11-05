@@ -30,18 +30,25 @@ public class PaymentController {
         System.out.println("⚡ Received payment request: " + data);
 
         try {
+            // 🔹 Parse required fields from frontend
             double amount = Double.parseDouble(data.get("amount").toString());
-            String receipt = "booking_temp_" + System.currentTimeMillis();
+            Long bookingId = Long.parseLong(data.get("bookingId").toString());  // ✅ required
+            String receipt = "booking_" + bookingId;
 
+            // 🔹 Create Razorpay order via PaymentService
             Order order = paymentService.createOrder(amount, receipt);
 
+            // 🔹 Save the Razorpay Order ID in PaymentTransaction table for this booking
+            paymentService.saveRazorpayOrderIdForBooking(bookingId, order.get("id"));
+
+            // 🔹 Prepare response
             Map<String, Object> response = new HashMap<>();
             response.put("id", order.get("id"));
             response.put("amount", order.get("amount"));
             response.put("currency", order.get("currency"));
             response.put("status", "created");
 
-            System.out.println("✅ Order created successfully: " + response);
+            System.out.println("✅ Order created successfully for booking " + bookingId + ": " + response);
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
@@ -52,10 +59,37 @@ public class PaymentController {
             errorResponse.put("error", "Payment order creation failed");
             errorResponse.put("message", e.getMessage());
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(errorResponse);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
+
+
+    @PostMapping("/verify")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> verifyPayment(@RequestBody Map<String, Object> data) {
+        try {
+            String paymentId = data.get("paymentId").toString();
+            String orderId = data.get("orderId").toString();
+            String signature = data.get("signature").toString();
+            Long bookingId = Long.parseLong(data.get("bookingId").toString());
+
+            boolean verified = paymentService.verifySignature(orderId, paymentId, signature);
+
+            if (verified) {
+                paymentService.markBookingAsPaid(bookingId, paymentId);
+                return ResponseEntity.ok(Map.of("status", "success"));
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("status", "failed", "message", "Signature mismatch"));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("status", "error", "message", e.getMessage()));
+        }
+    }
+
 
     // ✅ Show Payment Page
     @GetMapping("/page")
@@ -81,15 +115,20 @@ public class PaymentController {
     }
 
     // ✅ Payment Success Page
+    // ✅ Payment Success Page — confirm booking here
     @GetMapping("/success")
     public String paymentSuccess(
-            @RequestParam(required = false) Long bookingId,
-            @RequestParam(required = false) String paymentId,
+            @RequestParam Long bookingId,
+            @RequestParam String paymentId,
             Model model) {
+
+        // Confirm the booking (mark as PAID/CONFIRMED)
+        paymentService.markBookingAsPaid(bookingId, paymentId);
 
         model.addAttribute("bookingId", bookingId);
         model.addAttribute("paymentId", paymentId);
 
         return "payment_success";
     }
+
 }

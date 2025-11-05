@@ -137,7 +137,7 @@
     // ✅ Get data from Thymeleaf
     const paymentData = {
         amount: [[${totalAmount}]],
-        bookingId: [[${bookingId} ?: 0]],
+        bookingId: [[${bookingId}]],
         venueName: '[[${venueName}]]',
         courtName: '[[${courtName}]]',
         date: '[[${bookingDate}]]',
@@ -206,13 +206,45 @@
                 name: "MyPlayPal",
                 description: "Sports Venue Booking Payment",
                 order_id: order.id,
-                handler: function (response) {
-                    console.log("✅✅✅ PAYMENT SUCCESS:", response);
-                    debugStatus.textContent = '✅ Payment successful! Redirecting...';
-                    alert("✅ Payment Successful!\nPayment ID: " + response.razorpay_payment_id);
-                    window.location.href = `/api/payment/success?bookingId=${bookingId}&paymentId=${response.razorpay_payment_id}`;
+                handler: async function (response) {
+                    console.log("✅ PAYMENT SUCCESS:", response);
+                    debugStatus.textContent = '✅ Payment successful! Verifying...';
+
+                    try {
+                        // 🔹 Call backend verify endpoint
+                        const verifyResponse = await fetch("/api/payment/verify", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "Accept": "application/json"
+                            },
+                            body: JSON.stringify({
+                                paymentId: response.razorpay_payment_id,
+                                orderId: response.razorpay_order_id,
+                                signature: response.razorpay_signature,
+                                bookingId: bookingId
+                            })
+                        });
+
+                        const verifyResult = await verifyResponse.json();
+                        console.log("🧾 Verify Response:", verifyResult);
+
+                        if (verifyResponse.ok && verifyResult.status === "success") {
+                            debugStatus.textContent = '✅ Payment verified! Redirecting...';
+                            alert("✅ Payment verified successfully!");
+                            window.location.href = `/api/payment/success?bookingId=${bookingId}&paymentId=${response.razorpay_payment_id}`;
+                        } else {
+                            debugStatus.textContent = '⚠️ Payment verification failed!';
+                            alert("⚠️ Payment verification failed: " + (verifyResult.message || "Unknown error"));
+                        }
+
+                    } catch (err) {
+                        console.error("❌ Error verifying payment:", err);
+                        alert("❌ Error verifying payment: " + err.message);
+                        debugStatus.textContent = '❌ Error verifying payment';
+                    }
                 },
-                prefill: {
+                 prefill: {
                     name: "MyPlayPal User",
                     email: "user@example.com",
                     contact: "9999999999"

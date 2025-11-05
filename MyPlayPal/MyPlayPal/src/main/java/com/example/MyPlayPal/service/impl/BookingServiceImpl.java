@@ -53,11 +53,11 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + req.getUserId()));
 
         // --- 2. Validate and Lock Slot ---
-        LocalTime requestedStartTime = req.getStartTime();
-        LocalDateTime startDateTime = req.getBookingDate().atTime(requestedStartTime);
-        LocalDateTime endDateTime = startDateTime.plusHours(1);
+        LocalDateTime startDateTime = LocalDateTime.of(req.getBookingDate(), req.getStartTime());
+        LocalDateTime endDateTime = LocalDateTime.of(req.getBookingDate(), req.getEndTime());
 
-        CourtSlot slot = slotRepo.findByCourtIdAndStartTimeAndEndTime(req.getCourtId(), startDateTime, endDateTime)
+        CourtSlot slot = slotRepo.findByCourtIdAndStartTimeAndEndTime(
+                        req.getCourtId(), startDateTime, endDateTime)
                 .orElseThrow(() -> new ResourceNotFoundException("Slot not found for the specified time and court."));
 
         if (slot.getStatus() != CourtSlot.SlotStatus.AVAILABLE) {
@@ -82,25 +82,23 @@ public class BookingServiceImpl implements BookingService {
                 .user(user)
                 .slot(slot)
                 .bookingDate(Instant.now())
-                .status(Booking.BookingStatus.CONFIRMED)
+                .status(Booking.BookingStatus.PENDING)
                 .totalAmount(totalAmount)
                 .build();
 
         Booking savedBooking = bookingRepo.save(booking);
 
-        // --- 6. Record Payment Transaction ---
+        // --- 6. Initialize PaymentTransaction as INITIATED ---
         PaymentTransaction transaction = PaymentTransaction.builder()
                 .user(user)
                 .booking(savedBooking)
                 .amount(totalAmount)
                 .timestamp(Instant.now())
-                .status(PaymentTransaction.PaymentStatus.SUCCESS)
-                .referenceId(req.getPaymentRefId())
+                .status(PaymentTransaction.PaymentStatus.INITIATED)
                 .build();
-
         paymentRepo.save(transaction);
 
-        // sending email part
+        // --- 7. Optional email ---
         try {
             String htmlTemplate = new String(
                     Objects.requireNonNull(
@@ -111,10 +109,11 @@ public class BookingServiceImpl implements BookingService {
             htmlTemplate = htmlTemplate
                     .replace("{{username}}", user.getUsername())
                     .replace("{{courtName}}", slot.getCourt().getCourtname())
-                    .replace("{{bookingDate}}", req.getBookingDate().toString())
-                    .replace("{{startTime}}", req.getStartTime().toString())
-                    .replace("{{endTime}}", req.getStartTime().plusHours(1).toString())
+                    .replace("{{bookingDate}}", req.getBookingDate().toString()) // LocalDate ✅
+                    .replace("{{startTime}}", req.getStartTime().toString())     // LocalTime ✅
+                    .replace("{{endTime}}", req.getEndTime().toString())         // LocalTime ✅
                     .replace("{{amount}}", totalAmount.toString());
+
 
             emailService.sendBookingConfirmation(
                     user.getEmail(),
@@ -122,13 +121,13 @@ public class BookingServiceImpl implements BookingService {
                     htmlTemplate
             );
         } catch (Exception e) {
-            e.printStackTrace(); // optional logging
+            e.printStackTrace(); // log only
         }
 
-
-        // --- 7. Convert to DTO and Return ---
+        // --- 8. Return DTO ---
         return toDto(savedBooking);
     }
+
 
     @Override
     @Transactional(readOnly = true)

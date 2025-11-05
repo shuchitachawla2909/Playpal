@@ -27,16 +27,16 @@ public class BookingController {
     @Autowired
     private UserRepository userRepository;
 
-    @PostMapping
-    public ResponseEntity<BookingDto> createBooking(Principal principal,
-                                                    @Valid @RequestBody CreateBookingRequest request) {
-        // Securely retrieve userId from Principal and set it in the request DTO
-        Long currentUserId = userService.getUserIdByUsername(principal.getName());
-        request.setUserId(currentUserId);
+    @PostMapping("/create")
+    public ResponseEntity<?> createBooking(@RequestBody @Valid CreateBookingRequest request, Principal principal) {
 
-        BookingDto createdBooking = bookingService.createBooking(request);
-        return new ResponseEntity<>(createdBooking, HttpStatus.CREATED);
+        String username = principal.getName();
+        Long userId = userService.getUserIdByUsername(username);
+        request.setUserId(userId);
+        BookingDto booking = bookingService.createBooking(request);
+        return ResponseEntity.ok(booking);
     }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<BookingDto> getBooking(@PathVariable Long id, Principal principal) {

@@ -9,6 +9,11 @@ import java.util.Optional;
 
 @Repository
 public interface PaymentTransactionRepository extends JpaRepository<PaymentTransaction, Long> {
+
     List<PaymentTransaction> findByUserId(Long userId);
+
     Optional<PaymentTransaction> findByBookingId(Long bookingId);
+
+    // ✅ Optional helper for updating after payment success
+    Optional<PaymentTransaction> findByReferenceId(String referenceId);
 }
