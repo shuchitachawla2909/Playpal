@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
@@ -23,8 +24,8 @@ public class BookingPageController {
 
     // This handles links like /booking?courtId=1&venueId=5
     @GetMapping("/booking")
-    public String showBookingPage(@RequestParam Long courtId,
-                                  @RequestParam Long venueId,
+    public String showBookingPage(@PathVariable Long courtId,
+                                  @PathVariable Long venueId,
                                   Model model) {
         CourtDto court = courtService.getById(courtId);
         VenueDto venue = venueService.getById(venueId);
