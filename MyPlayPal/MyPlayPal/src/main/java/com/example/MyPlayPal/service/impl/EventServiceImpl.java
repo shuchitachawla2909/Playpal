@@ -1,5 +1,6 @@
 package com.example.MyPlayPal.service.impl;
 
+import com.example.MyPlayPal.model.CourtSlot;
 import com.example.MyPlayPal.model.Event;
 import com.example.MyPlayPal.model.EventParticipant;
 import com.example.MyPlayPal.model.User;
@@ -129,6 +130,15 @@ public class EventServiceImpl implements EventService {
             List<EventParticipant> participants = participantRepository.findByEvent(event);
             for (EventParticipant participant : participants) {
                 participant.setStatus(EventParticipant.ParticipantStatus.CANCELLED);
+            }
+
+            // Update court slots back to AVAILABLE
+            if (event.getSlots() != null && !event.getSlots().isEmpty()) {
+                for (CourtSlot slot : event.getSlots()) {
+                    if (slot.getStatus() == CourtSlot.SlotStatus.BOOKED) {
+                        slot.setStatus(CourtSlot.SlotStatus.AVAILABLE);
+                    }
+                }
             }
 
             eventRepository.save(event);

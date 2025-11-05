@@ -99,8 +99,9 @@ public class EventParticipantServiceImpl implements EventParticipantService {
         EventParticipant participant = participantRepository.findByEventAndUser(event, user)
                 .orElseThrow(() -> new RuntimeException("User not part of this event"));
 
-        // Remove participant
-        participantRepository.delete(participant);
+        // Set participant status to CANCELLED instead of deleting
+        participant.setStatus(EventParticipant.ParticipantStatus.CANCELLED);
+        participantRepository.save(participant);
 
         // Update player count
         event.setCurrentPlayers(event.getCurrentPlayers() - 1);
