@@ -142,6 +142,20 @@
 
     console.log("💳 Event Payment Data:", paymentData);
 
+    // ✅ FIX: safely parse eventData here
+    let parsedEventData = null;
+    try {
+        // Remove possible extra quotes before parsing
+        const cleanEventData = paymentData.eventData
+            .replace(/^"|"$/g, '') // remove outer quotes
+            .replace(/\\"/g, '"'); // unescape inner quotes
+
+        parsedEventData = JSON.parse(cleanEventData);
+        console.log("🧾 Parsed eventData object:", parsedEventData);
+    } catch (err) {
+        console.error("❌ Could not parse eventData JSON:", err);
+    }
+
     payBtn.addEventListener("click", async function (e) {
         e.preventDefault();
         console.log("🔘 Pay button clicked for event creation");
@@ -180,7 +194,7 @@
 
             // Configure Razorpay checkout
             const options = {
-                key: "rzp_test_RaUdqlIGoEQOFj", // 🔑 Replace with YOUR Razorpay test key
+                key: "rzp_test_RaUdqlIGoEQOFj", // keep your test key
                 amount: order.amount,
                 currency: order.currency,
                 name: "MyPlayPal",
@@ -191,15 +205,14 @@
 
                     // Create event after successful payment
                     try {
-                        const eventData = JSON.parse(paymentData.eventData);
-                        console.log("📝 Creating event with data:", eventData);
+                        console.log("📝 Creating event with data:", parsedEventData);
 
                         const createEventResponse = await fetch('/api/events/create-with-venue', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'
                             },
-                            body: JSON.stringify(eventData)
+                            body: JSON.stringify(parsedEventData)
                         });
 
                         if (createEventResponse.ok) {
@@ -215,7 +228,7 @@
                         }
                     } catch (err) {
                         console.error("❌ Error creating event:", err);
-                        alert("⚠️ Payment successful but event creation failed. Please contact support.");
+                        alert("⚠️ Sorry couldnt create event");
                         window.location.href = `/events`;
                     }
                 },
