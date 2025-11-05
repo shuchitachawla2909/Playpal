@@ -25,5 +25,6 @@ public interface CourtRepository extends JpaRepository<Court, Long> {
 
     // find bookable courts in a city (if Court has venue.city relationship - use join in service or a custom query)
     List<Court> findByIsBookableTrueAndVenue_City(String city);
+
 }
 

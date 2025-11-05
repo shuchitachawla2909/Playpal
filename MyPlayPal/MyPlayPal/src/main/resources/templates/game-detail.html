@@ -226,7 +226,7 @@
                 <p th:text="'City: ' + ${venue.city}">City</p>
                 <p th:text="'Address: ' + ${venue.address}">Address</p>
 
-                <a th:href="@{/booking(courtId=${sport.id}, venueId=${venue.id})}" class="book-btn">
+                <a th:href="@{/venues/{id}(id=${venue.id})}" class="book-btn">
                     Book Now
                 </a>
 

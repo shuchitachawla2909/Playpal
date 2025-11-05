@@ -70,5 +70,19 @@ public interface CourtSlotRepository extends JpaRepository<CourtSlot, Long> {
     boolean existsByCourtIdAndStartTimeAndEndTime(Long courtId, LocalDateTime startTime, LocalDateTime endTime);
     List<CourtSlot> findByCourtIdOrderByStartTimeAsc(Long courtId);
 
+    @Query("""
+   SELECT cs FROM CourtSlot cs
+     JOIN cs.court c
+     JOIN c.venue v
+   WHERE v.id = :venueId
+     AND cs.status = 'AVAILABLE'
+     AND cs.startTime >= :from
+     AND cs.endTime <= :to
+   """)
+    List<CourtSlot> findAvailableByVenueAndDateRange(@Param("venueId") Long venueId,
+                                                     @Param("from") LocalDateTime from,
+                                                     @Param("to") LocalDateTime to);
+
+
 
 }

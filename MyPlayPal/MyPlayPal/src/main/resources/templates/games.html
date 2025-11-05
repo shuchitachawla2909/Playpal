@@ -165,10 +165,13 @@
     <div th:each="sport : ${sports}" class="card">
         <img th:src="${sport.sportImageUrl}" th:alt="${sport.sportname}">
         <h2 th:text="${sport.sportname}">Sport Name</h2>
-        <form th:action="@{'/user-sports/' + ${sport.id}}" method="post" style="text-align:center;">
-            <button type="submit" class="btn">View Details</button>
-        </form>
+<!--        <form th:action="@{'/user-sports/' + ${sport.id}}" method="post" style="text-align:center;">-->
+<!--            <button type="submit" class="btn">View Details</button>-->
+<!--        </form>-->
 
+            <form th:action="@{/games/{id}(id=${sport.id})}" method="get">
+                <button type="submit" class="btn">View Details</button>
+            </form>
     </div>
 </div>
 

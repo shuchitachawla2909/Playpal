@@ -81,7 +81,7 @@ public class CourtSlotServiceImpl implements CourtSlotService {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime futureLimit = now.plusDays(30);
 
-        List<CourtSlot> slots = slotRepository.findByVenueAndDateRange(venueId, now, futureLimit);
+        List<CourtSlot> slots = slotRepository.findAvailableByVenueAndDateRange(venueId, now, futureLimit);
 
         Map<String, Map<String, List<CourtSlot>>> groupedSlots = slots.stream()
                 .collect(Collectors.groupingBy(
