@@ -97,7 +97,7 @@ public class ManagerPageController {
     public String updateVenue(@PathVariable Long venueId,
                               @ModelAttribute VenueDto updatedVenue) {
         venueService.updateVenue(venueId, updatedVenue);
-        return "redirect:/manager/venues/" + venueId;
+        return "redirect:/manager/dashboard";
     }
 
     // Handle deleting the venue
