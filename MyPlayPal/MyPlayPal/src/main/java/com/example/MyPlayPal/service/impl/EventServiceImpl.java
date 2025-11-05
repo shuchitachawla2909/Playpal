@@ -131,6 +131,13 @@ public class EventServiceImpl implements EventService {
                 participant.setStatus(EventParticipant.ParticipantStatus.CANCELLED);
             }
 
+            // Free up court slots back to AVAILABLE
+            if (event.getSlots() != null) {
+                for (com.example.MyPlayPal.model.CourtSlot slot : event.getSlots()) {
+                    slot.setStatus(com.example.MyPlayPal.model.CourtSlot.SlotStatus.AVAILABLE);
+                }
+            }
+
             eventRepository.save(event);
         }
     }
