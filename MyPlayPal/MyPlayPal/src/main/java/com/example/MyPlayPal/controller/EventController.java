@@ -11,6 +11,8 @@ import com.example.MyPlayPal.service.EventService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@RestController
+@Controller
 @RequestMapping("/api/events")
 @RequiredArgsConstructor
 public class EventController {
@@ -36,7 +38,8 @@ public class EventController {
      * Called before redirecting to payment page
      */
     @PostMapping("/prepare-payment")
-    @Transactional(readOnly = true) // ✅ Add @Transactional to keep session open
+    @ResponseBody // Add this for JSON response
+    @Transactional(readOnly = true)
     public Map<String, Object> prepareEventPayment(@RequestBody Map<String, Object> request) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
@@ -63,7 +66,6 @@ public class EventController {
         // Calculate total venue booking cost
         BigDecimal totalAmount = BigDecimal.ZERO;
         for (CourtSlot slot : slots) {
-            // ✅ Force load of Court and Venue within transaction
             BigDecimal rate = slot.getCourt().getHourlyRate();
             if (rate != null) {
                 totalAmount = totalAmount.add(rate);
@@ -73,12 +75,11 @@ public class EventController {
         // Get first slot and force load venue/court data
         CourtSlot firstSlot = slots.get(0);
 
-        // ✅ Access nested properties to force Hibernate to load them
         String venueName = firstSlot.getCourt().getVenue().getVenuename();
         String courtName = firstSlot.getCourt().getCourtname();
         String bookingDate = firstSlot.getStartTime().toLocalDate().toString();
 
-        // Format slot times for display (e.g., "07:00 - 08:00, 08:00 - 09:00")
+        // Format slot times for display
         String slotTimes = slots.stream()
                 .map(slot -> {
                     DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
@@ -87,7 +88,7 @@ public class EventController {
                 })
                 .collect(Collectors.joining(", "));
 
-        // Build response map (using HashMap to avoid Map.of() limit of 10 entries)
+        // Build response map
         Map<String, Object> response = new HashMap<>();
         response.put("totalAmount", totalAmount);
         response.put("venueName", venueName);
@@ -106,9 +107,9 @@ public class EventController {
 
     /**
      * CREATE EVENT AFTER PAYMENT SUCCESS
-     * Called from frontend after Razorpay payment succeeds
      */
     @PostMapping("/create-with-venue")
+    @ResponseBody // Add this for JSON response
     @Transactional
     public EventResponse createEventWithVenue(@RequestBody Map<String, Object> request) {
         try {
@@ -117,7 +118,7 @@ public class EventController {
             User organizer = userRepository.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
-            // ✅ Handle both Integer and Long types for slotIds
+            // Handle both Integer and Long types for slotIds
             List<Long> slotIdLongs;
             Object slotIdsObj = request.get("slotIds");
 
@@ -170,7 +171,7 @@ public class EventController {
                 courtSlotRepository.save(slot);
             }
 
-            // ✅ FIX: Parse entry fee safely with null check
+            // Parse entry fee safely with null check
             BigDecimal entryFee = BigDecimal.ZERO;
             Object entryFeeObj = request.get("entryFee");
             if (entryFeeObj != null) {
@@ -183,8 +184,8 @@ public class EventController {
                 }
             }
 
-            // ✅ FIX: Parse maxPlayers safely with null check
-            Integer maxPlayers = 4; // Default value
+            // Parse maxPlayers safely with null check
+            Integer maxPlayers = 4;
             Object maxPlayersObj = request.get("maxPlayers");
             if (maxPlayersObj != null) {
                 if (maxPlayersObj instanceof Integer) {
@@ -194,7 +195,7 @@ public class EventController {
                 }
             }
 
-            // ✅ FIX: Handle other fields with null checks
+            // Handle other fields with null checks
             String eventName = (String) request.get("eventName");
             String description = (String) request.get("description");
             String skillLevelRequired = (String) request.get("skillLevelRequired");
@@ -225,15 +226,16 @@ public class EventController {
             return eventMapper.toEventResponse(savedEvent);
 
         } catch (Exception e) {
-            // ✅ Log the full error
             e.printStackTrace();
             throw new RuntimeException("Failed to create event: " + e.getMessage(), e);
         }
     }
+
     /**
      * CREATE BASIC EVENT (without venue booking)
      */
     @PostMapping
+    @ResponseBody // Add this for JSON response
     @Transactional
     public EventResponse createEvent(@RequestBody Map<String, Object> request) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -256,20 +258,10 @@ public class EventController {
     }
 
     /**
-     * GET EVENT BY ID
-     */
-    @GetMapping("/{id}")
-    @Transactional(readOnly = true)
-    public EventResponse getEvent(@PathVariable Long id) {
-        Event event = eventService.getEventById(id)
-                .orElseThrow(() -> new RuntimeException("Event not found"));
-        return eventMapper.toEventResponse(event);
-    }
-
-    /**
-     * GET ALL EVENTS
+     * GET ALL EVENTS (API)
      */
     @GetMapping
+    @ResponseBody // Add this for JSON response
     @Transactional(readOnly = true)
     public List<EventResponse> getAllEvents() {
         return eventService.getAllEvents().stream()
@@ -278,9 +270,10 @@ public class EventController {
     }
 
     /**
-     * GET EVENTS BY ORGANIZER
+     * GET EVENTS BY ORGANIZER (API)
      */
     @GetMapping("/organizer/{organizerId}")
+    @ResponseBody // Add this for JSON response
     @Transactional(readOnly = true)
     public List<EventResponse> getEventsByOrganizer(@PathVariable Long organizerId) {
         User organizer = userRepository.findById(organizerId)
@@ -291,9 +284,10 @@ public class EventController {
     }
 
     /**
-     * SEARCH EVENTS BY NAME
+     * SEARCH EVENTS BY NAME (API)
      */
     @GetMapping("/search")
+    @ResponseBody // Add this for JSON response
     @Transactional(readOnly = true)
     public List<EventResponse> searchEvents(@RequestParam String name) {
         return eventService.searchEventsByName(name).stream()
@@ -302,12 +296,37 @@ public class EventController {
     }
 
     /**
-     * CANCEL EVENT
+     * GET EVENT DETAILS PAGE (Thymeleaf template) - NO @ResponseBody here
+     */
+    @GetMapping("/{id}")
+    public String getEventDetails(@PathVariable Long id, Model model) {
+        try {
+            Event event = eventService.getEventById(id)
+                    .orElseThrow(() -> new RuntimeException("Event not found"));
+
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String username = auth.getName();
+            User currentUser = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            model.addAttribute("event", event);
+            model.addAttribute("currentUser", currentUser);
+            model.addAttribute("currentUserId", currentUser.getId()); // Add this for the form
+
+            return "event-details";
+        } catch (Exception e) {
+            model.addAttribute("error", "Event not found: " + e.getMessage());
+            return "error";
+        }
+    }
+
+    /**
+     * CANCEL EVENT (API)
      */
     @PostMapping("/{id}/cancel")
+    @ResponseBody // Add this for JSON response
     @Transactional
     public void cancelEvent(@PathVariable Long id) {
         eventService.cancelEvent(id);
     }
-
 }

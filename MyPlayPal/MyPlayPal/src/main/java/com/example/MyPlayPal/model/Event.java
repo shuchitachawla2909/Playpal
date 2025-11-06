@@ -70,4 +70,9 @@ public class Event {
     @JoinColumn(name = "venue_id")
     private Venue venue;
 
+    public String getVenueName() {
+        return venue != null ? venue.getVenuename() : "Venue not specified";
+    }
+
+
 }

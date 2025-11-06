@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Optional;
+
 import java.util.List;
 
 public interface EventRepository extends JpaRepository<Event, Long> {
@@ -32,4 +34,16 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     // Find events by venue
     List<Event> findByVenue(Venue venue);
+
+    @Query("SELECT e FROM Event e LEFT JOIN FETCH e.venue WHERE e.id = :eventId")
+    Optional<Event> findByIdWithVenue(@Param("eventId") Long eventId);
+
+    @Query("SELECT e FROM Event e " +
+            "LEFT JOIN FETCH e.venue " +
+            "LEFT JOIN FETCH e.organizer " +
+            "LEFT JOIN FETCH e.sport " +
+            "WHERE e.id = :eventId")
+    Optional<Event> findByIdWithDetails(@Param("eventId") Long eventId);
+
+
 }

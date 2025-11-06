@@ -19,4 +19,6 @@ public interface PaymentTransactionRepository extends JpaRepository<PaymentTrans
 
 
     Optional<PaymentTransaction> findByEventId(Long eventId);
+
+    Optional<PaymentTransaction> findByParticipantId(Long participantId);
 }

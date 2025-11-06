@@ -44,4 +44,5 @@ public class User {
     // One user can have multiple bookings
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Booking> bookings;
+
 }
