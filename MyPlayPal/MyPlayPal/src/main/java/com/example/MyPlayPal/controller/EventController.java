@@ -170,35 +170,50 @@ public class EventController {
                 courtSlotRepository.save(slot);
             }
 
-            // ✅ Parse entry fee safely
-            BigDecimal entryFee;
+            // ✅ FIX: Parse entry fee safely with null check
+            BigDecimal entryFee = BigDecimal.ZERO;
             Object entryFeeObj = request.get("entryFee");
-            if (entryFeeObj instanceof Number) {
-                entryFee = BigDecimal.valueOf(((Number) entryFeeObj).doubleValue());
-            } else {
-                entryFee = new BigDecimal(entryFeeObj.toString());
+            if (entryFeeObj != null) {
+                if (entryFeeObj instanceof Number) {
+                    entryFee = BigDecimal.valueOf(((Number) entryFeeObj).doubleValue());
+                } else if (entryFeeObj instanceof String) {
+                    entryFee = new BigDecimal((String) entryFeeObj);
+                } else {
+                    entryFee = new BigDecimal(entryFeeObj.toString());
+                }
             }
 
-            // ✅ Parse maxPlayers safely
-            Integer maxPlayers;
+            // ✅ FIX: Parse maxPlayers safely with null check
+            Integer maxPlayers = 4; // Default value
             Object maxPlayersObj = request.get("maxPlayers");
-            if (maxPlayersObj instanceof Integer) {
-                maxPlayers = (Integer) maxPlayersObj;
-            } else {
-                maxPlayers = Integer.parseInt(maxPlayersObj.toString());
+            if (maxPlayersObj != null) {
+                if (maxPlayersObj instanceof Integer) {
+                    maxPlayers = (Integer) maxPlayersObj;
+                } else {
+                    maxPlayers = Integer.parseInt(maxPlayersObj.toString());
+                }
+            }
+
+            // ✅ FIX: Handle other fields with null checks
+            String eventName = (String) request.get("eventName");
+            String description = (String) request.get("description");
+            String skillLevelRequired = (String) request.get("skillLevelRequired");
+
+            if (eventName == null || eventName.trim().isEmpty()) {
+                throw new RuntimeException("Event name is required");
             }
 
             // Create event
             Event event = Event.builder()
-                    .eventName((String) request.get("eventName"))
+                    .eventName(eventName)
                     .maxPlayers(maxPlayers)
-                    .description((String) request.get("description"))
-                    .skillLevelRequired((String) request.get("skillLevelRequired"))
+                    .description(description != null ? description : "")
+                    .skillLevelRequired(skillLevelRequired != null ? skillLevelRequired : "All Levels")
                     .entryFee(entryFee)
                     .organizer(organizer)
                     .slots(slots)
                     .currentPlayers(0)
-                    .status(Event.EventStatus.CONFIRMED)
+                    .status(Event.EventStatus.PENDING)
                     .totalAmount(totalAmount)
                     .build();
 

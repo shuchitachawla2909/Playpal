@@ -73,6 +73,20 @@
             font-size: 0.9rem;
             font-weight: 600;
         }
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 10px 0;
+        }
+        .error-message {
+            color: #dc2626;
+            background: #fef2f2;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 15px 0;
+            text-align: center;
+            border: 1px solid #fecaca;
+        }
     </style>
 </head>
 <body>
@@ -85,6 +99,12 @@
     </div>
 
     <h2>Payment for Event Creation</h2>
+
+    <!-- Error Message Display -->
+    <div th:if="${error}" class="error-message">
+        <i class="fa-solid fa-exclamation-triangle"></i>
+        <span th:text="${error}"></span>
+    </div>
 
     <div class="summary-box">
         <div class="summary-item">
@@ -113,6 +133,11 @@
         </div>
     </div>
 
+    <!-- Loading Spinner -->
+    <div id="loading" class="loading">
+        <i class="fa-solid fa-spinner fa-spin"></i> Processing payment...
+    </div>
+
     <button id="pay-btn" class="pay-btn">
         <i class="fa-solid fa-credit-card"></i> Pay & Create Event
     </button>
@@ -126,159 +151,180 @@
 <!-- Load Razorpay SDK -->
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
-<script th:inline="javascript">
-    const payBtn = document.getElementById("pay-btn");
+<script>
+    console.log('🚀 Event Payment Page Loaded');
 
-    // Get payment data from Thymeleaf
-    const paymentData = {
-        amount: [[${totalAmount}]],
-        eventName: '[[${eventName}]]',
-        venueName: '[[${venueName}]]',
-        courtName: '[[${courtName}]]',
-        date: '[[${bookingDate}]]',
-        slots: '[[${selectedSlots}]]',
-        eventData: '[[${eventData}]]' // JSON string containing all event details
-    };
+    const razorpayKeyId = 'rzp_test_RaUdqlIGoEQOFj';
+    const totalAmount = 444;
 
-    console.log("💳 Event Payment Data:", paymentData);
+    // Extract and validate event data
+    function getValidatedEventData() {
+        const urlParams = new URLSearchParams(window.location.search);
 
-    // ✅ FIX: safely parse eventData here
-    let parsedEventData = null;
-    try {
-        // Remove possible extra quotes before parsing
-        const cleanEventData = paymentData.eventData
-            .replace(/^"|"$/g, '') // remove outer quotes
-            .replace(/\\"/g, '"'); // unescape inner quotes
+        // Try to get eventData from URL parameter
+        const eventDataParam = urlParams.get('eventData');
+        let eventData = {};
 
-        parsedEventData = JSON.parse(cleanEventData);
-        console.log("🧾 Parsed eventData object:", parsedEventData);
-    } catch (err) {
-        console.error("❌ Could not parse eventData JSON:", err);
+        if (eventDataParam) {
+            try {
+                eventData = JSON.parse(decodeURIComponent(eventDataParam));
+                console.log('📦 Parsed eventData from URL:', eventData);
+            } catch (e) {
+                console.error('Error parsing eventData:', e);
+            }
+        }
+
+        // Ensure all required fields exist with defaults
+        const validatedData = {
+            eventName: eventData.eventName || 'Event',
+            venueName: eventData.venueName || 'Venue',
+            courtName: eventData.courtName || 'Court',
+            bookingDate: eventData.bookingDate || '2025-11-06',
+            selectedSlots: eventData.selectedSlots || '15:00 - 16:00',
+            amount: totalAmount,
+            maxPlayers: eventData.maxPlayers || 4,
+            description: eventData.description || '',
+            skillLevelRequired: eventData.skillLevelRequired || 'All Levels',
+            entryFee: eventData.entryFee || 0,
+            slotIds: eventData.slotIds || [12, 14], // Ensure this is an array
+            venueId: eventData.venueId || 3
+        };
+
+        console.log('✅ Validated event data:', validatedData);
+        return validatedData;
     }
 
-    payBtn.addEventListener("click", async function (e) {
-        e.preventDefault();
-        console.log("🔘 Pay button clicked for event creation");
+    const eventData = getValidatedEventData();
 
+    async function initiateEventPayment() {
+        console.log('💰 Payment button clicked');
+
+        const payBtn = document.getElementById('pay-btn');
+        const loading = document.getElementById('loading');
+
+        // Show loading, disable button
         payBtn.disabled = true;
+        loading.style.display = 'block';
         payBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
 
-        const totalAmount = paymentData.amount;
-
         try {
-            console.log("📡 Creating Razorpay order...");
+            console.log('🔄 Creating Razorpay order for amount:', totalAmount);
 
-            // Create Razorpay order
-            const response = await fetch('/api/payment/create-order', {
+            // Create order on your server
+            const orderResponse = await fetch('/api/event-payment/create-order', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json'
                 },
                 body: JSON.stringify({
-                    amount: totalAmount,
-                    bookingId: 0 // Not a regular booking
+                    amount: totalAmount
                 })
             });
 
-            console.log("📥 Response status:", response.status);
+            const orderData = await orderResponse.json();
+            console.log('📦 Order response:', orderData);
 
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error("❌ Server error:", errorText);
-                throw new Error(`Order creation failed: ${response.status}`);
+            if (!orderResponse.ok) {
+                throw new Error(orderData.message || 'Order creation failed');
             }
 
-            const order = await response.json();
-            console.log("✅ Razorpay order created:", order);
+            console.log('✅ Order created, opening Razorpay...');
 
-            // Configure Razorpay checkout
+            // Open Razorpay checkout
             const options = {
-                key: "rzp_test_RaUdqlIGoEQOFj", // keep your test key
-                amount: order.amount,
-                currency: order.currency,
-                name: "MyPlayPal",
-                description: "Event Venue Booking - " + paymentData.eventName,
-                order_id: order.id,
-                handler: async function (response) {
-                    console.log("✅ Payment Success:", response);
-
-                    // Create event after successful payment
-                    try {
-                        console.log("📝 Creating event with data:", parsedEventData);
-
-                        const createEventResponse = await fetch('/api/events/create-with-venue', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(parsedEventData)
-                        });
-
-                        if (createEventResponse.ok) {
-                            const createdEvent = await createEventResponse.json();
-                            console.log("✅ Event created:", createdEvent);
-                            alert("✅ Payment Successful! Event created.");
-                            window.location.href = `/events/${createdEvent.id}`;
-                        } else {
-                            const errorText = await createEventResponse.text();
-                            console.error("❌ Event creation failed:", errorText);
-                            alert("⚠️ Payment successful but event creation failed. Please contact support.");
-                            window.location.href = `/events`;
-                        }
-                    } catch (err) {
-                        console.error("❌ Error creating event:", err);
-                        alert("⚠️ Sorry couldnt create event");
-                        window.location.href = `/events`;
-                    }
+                key: razorpayKeyId,
+                amount: orderData.amount,
+                currency: orderData.currency,
+                name: "MyPlayPal - Event Creation",
+                description: "Event Venue Booking: " + eventData.eventName,
+                order_id: orderData.id,
+                handler: function(response) {
+                    console.log('💰 Payment successful:', response);
+                    verifyEventPaymentAndCreateEvent(response);
                 },
                 prefill: {
                     name: "Event Organizer",
                     email: "organizer@example.com",
                     contact: "9999999999"
                 },
-                notes: {
-                    event_name: paymentData.eventName,
-                    venue: paymentData.venueName,
-                    court: paymentData.courtName
-                },
                 theme: {
-                    color: "#667eea"
+                    color: "#2563eb"
                 },
                 modal: {
                     ondismiss: function() {
-                        console.log("⚠️ Payment cancelled by user");
+                        console.log('❌ Payment modal closed');
+                        // Re-enable button if user closes the modal
                         payBtn.disabled = false;
+                        loading.style.display = 'none';
                         payBtn.innerHTML = '<i class="fa-solid fa-credit-card"></i> Pay & Create Event';
                     }
                 }
             };
 
-            console.log("🚀 Opening Razorpay checkout...");
-
-            if (typeof Razorpay === 'undefined') {
-                throw new Error("Razorpay SDK not loaded!");
-            }
-
-            const razorpay = new Razorpay(options);
-
-            razorpay.on('payment.failed', function (response) {
-                console.error("❌ Payment failed:", response.error);
-                alert("⚠️ Payment Failed: " + response.error.description);
-                payBtn.disabled = false;
-                payBtn.innerHTML = '<i class="fa-solid fa-credit-card"></i> Pay & Create Event';
-            });
-
-            razorpay.open();
+            const rzp = new Razorpay(options);
+            rzp.open();
 
         } catch (error) {
-            console.error("❌ Payment error:", error);
-            alert("⚠️ Payment could not be started. Please try again.");
+            console.error('❌ Event Payment error:', error);
+            alert('Payment initiation failed: ' + error.message);
+
+            // Re-enable button on error
             payBtn.disabled = false;
+            loading.style.display = 'none';
             payBtn.innerHTML = '<i class="fa-solid fa-credit-card"></i> Pay & Create Event';
         }
-    });
-</script>
+    }
 
+    async function verifyEventPaymentAndCreateEvent(response) {
+        const payBtn = document.getElementById('pay-btn');
+        const loading = document.getElementById('loading');
+
+        // Keep loading state
+        payBtn.disabled = true;
+        loading.style.display = 'block';
+        payBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creating Event...';
+
+        try {
+            console.log('🔐 Verifying payment and creating event...');
+            console.log('📤 Sending event data to backend:', eventData);
+
+            const verifyResponse = await fetch('/api/event-payment/verify-and-create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    paymentId: response.razorpay_payment_id,
+                    orderId: response.razorpay_order_id,
+                    signature: response.razorpay_signature,
+                    eventData: eventData
+                })
+            });
+
+            const result = await verifyResponse.json();
+            console.log('✅ Backend response:', result);
+
+            if (result.status === 'success') {
+                console.log('🎉 Event created successfully, redirecting...');
+                window.location.href = `/api/event-payment/success?eventId=${result.eventId}&paymentId=${response.razorpay_payment_id}`;
+            } else {
+                throw new Error(result.message || 'Payment verification failed');
+            }
+        } catch (error) {
+            console.error('❌ Payment verification error:', error);
+            alert('Payment verification failed: ' + error.message);
+
+            // Re-enable button on error
+            payBtn.disabled = false;
+            loading.style.display = 'none';
+            payBtn.innerHTML = '<i class="fa-solid fa-credit-card"></i> Try Again';
+        }
+    }
+
+    // Attach event listener to payment button
+    document.getElementById('pay-btn').addEventListener('click', initiateEventPayment);
+
+    console.log('✅ Payment system ready');
+</script>
 </body>
 </html>
