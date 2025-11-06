@@ -39,7 +39,7 @@
         <h4 class="alert-heading">Error</h4>
         <p th:text="${error}"></p>
         <hr>
-        <a th:href="@{/dashboard}" class="btn btn-outline-danger">Go to Dashboard</a>
+        <a th:href="@{/profile}" class="btn btn-outline-danger">View My Bookings</a>
     </div>
 
     <!-- Success State -->
@@ -93,8 +93,8 @@
             <a th:href="@{/api/events/{eventId}(eventId=${event.id})}" class="btn btn-success me-2">
                 View Event Details
             </a>
-            <a th:href="@{/dashboard}" class="btn btn-outline-secondary">
-                Go to Dashboard
+            <a th:href="@{/profile}" class="btn btn-outline-secondary">
+                View My Bookings
             </a>
         </div>
 
