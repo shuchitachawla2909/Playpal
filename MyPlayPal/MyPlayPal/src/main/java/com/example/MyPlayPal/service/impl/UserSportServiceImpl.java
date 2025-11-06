@@ -10,6 +10,7 @@ import com.example.MyPlayPal.repository.SportRepository;
 import com.example.MyPlayPal.repository.UserRepository;
 import com.example.MyPlayPal.repository.UserSportRepository;
 import com.example.MyPlayPal.service.UserSportService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -49,28 +50,6 @@ public class UserSportServiceImpl implements UserSportService {
         });
 
         return players;
-    }
-
-    // ✅ Add or update user sport
-    @Override
-    public UserSportDto addUserSport(CreateUserSportRequest req) {
-        User user = userRepository.findById(req.getUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        Sport sport = sportRepository.findById(req.getSportId())
-                .orElseThrow(() -> new ResourceNotFoundException("Sport not found"));
-
-        var existing = userSportRepository.findByUserIdAndSportId(user.getId(), sport.getId());
-        UserSport userSport = existing.orElseGet(() -> new UserSport(null, user, sport, req.getSkillLevel()));
-
-        userSport.setSkillLevel(req.getSkillLevel());
-        UserSport saved = userSportRepository.save(userSport);
-
-        return UserSportDto.builder()
-                .id(saved.getId())
-                .userId(user.getId())
-                .sportId(sport.getId())
-                .skillLevel(saved.getSkillLevel())
-                .build();
     }
 
     // ✅ List all sports associated with a user
@@ -135,4 +114,36 @@ public class UserSportServiceImpl implements UserSportService {
             userSportRepository.save(userSport);
         }
     }
+
+//    @Autowired
+//    private UserSportRepository userSportRepository;
+//
+//    @Override
+//    public void addUserSport(Long userId, Long sportId) {
+//        // Avoid duplicate entries
+//        if (!userSportRepository.existsByUserIdAndSportId(userId, sportId)) {
+//            UserSport userSport = new UserSport();
+//            userSport.setUserId(userId);
+//            userSport.setSportId(sportId);
+//            userSportRepository.save(userSport);
+//        }
+//    }
+
+    @Override
+    public void addUserSport(Long userId, Long sportId) {
+        // Check if this user-sport combination already exists
+        if (!userSportRepository.existsByUserIdAndSportId(userId, sportId)) {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+
+            Sport sport = sportRepository.findById(sportId)
+                    .orElseThrow(() -> new RuntimeException("Sport not found with ID: " + sportId));
+
+            UserSport userSport = new UserSport();
+            userSport.setUser(user);
+            userSport.setSport(sport);
+            userSportRepository.save(userSport);
+        }
+    }
+
 }

@@ -7,9 +7,10 @@ import com.example.MyPlayPal.model.UserSport;
 import java.util.List;
 
 public interface UserSportService {
-    UserSportDto addUserSport(CreateUserSportRequest req);
     List<UserSportDto> listByUser(Long userId);
     List<UserSport> getAllOtherPlayers(Long currentUserId);
     void linkUserToSport(Long userId, Long sportId);
     void addUserSportForCurrentUser(Long sportId);
+
+    void addUserSport(Long userId, Long sportId);
 }

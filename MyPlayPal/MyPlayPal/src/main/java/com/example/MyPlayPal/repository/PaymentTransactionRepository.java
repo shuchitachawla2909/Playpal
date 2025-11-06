@@ -17,7 +17,6 @@ public interface PaymentTransactionRepository extends JpaRepository<PaymentTrans
     // ✅ Optional helper for updating after payment success
     Optional<PaymentTransaction> findByReferenceId(String referenceId);
 
-
     Optional<PaymentTransaction> findByEventId(Long eventId);
 
     Optional<PaymentTransaction> findByParticipantId(Long participantId);

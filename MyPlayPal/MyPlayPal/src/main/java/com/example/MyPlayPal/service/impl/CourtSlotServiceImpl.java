@@ -157,5 +157,18 @@ public class CourtSlotServiceImpl implements CourtSlotService {
         slotRepository.deleteById(slotId);
     }
 
+    @Override
+    public CourtSlotDto getCourtSlotById(Long slotId) {
+        CourtSlot courtSlot = slotRepository.findById(slotId)
+                .orElseThrow(() -> new RuntimeException("Court Slot not found with ID: " + slotId));
+
+        CourtSlotDto dto = new CourtSlotDto();
+        dto.setId(courtSlot.getId());
+        dto.setCourtId(courtSlot.getCourt().getId());
+        dto.setStartTime(courtSlot.getStartTime());
+        dto.setEndTime(courtSlot.getEndTime());
+        dto.setStatus(courtSlot.getStatus().name());
+        return dto;
+    }
 
 }

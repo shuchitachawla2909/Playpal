@@ -15,4 +15,5 @@ public interface BookingService {
     List<BookingDto> getBookingsByUserId(Long userId);
 
     BookingDto cancelBooking(Long bookingId, Long userId);
+
 }

@@ -17,5 +17,5 @@ public interface CourtSlotService {
     List<CourtSlot> getSlotsByCourtId(Long courtId);
 
     void deleteSlotById(Long slotId);
-
+    CourtSlotDto getCourtSlotById(Long slotId);
 }

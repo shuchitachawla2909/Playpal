@@ -124,9 +124,4 @@ public class PaymentServiceImpl implements PaymentService {
         txn.setReferenceId(razorpayOrderId);
         paymentRepo.save(txn);
     }
-
-
-
-
-
 }

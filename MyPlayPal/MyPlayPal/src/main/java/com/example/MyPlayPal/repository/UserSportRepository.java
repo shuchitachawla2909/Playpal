@@ -25,4 +25,6 @@ public interface UserSportRepository extends JpaRepository<UserSport, Long> {
             ")")
     List<UserSport> findAllExceptCurrentUser(@Param("currentUserId") Long currentUserId);
 
+    boolean existsByUserIdAndSportId(Long userId, Long sportId);
+
 }

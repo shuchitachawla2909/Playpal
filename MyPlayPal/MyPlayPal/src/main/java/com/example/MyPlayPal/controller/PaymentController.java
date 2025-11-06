@@ -1,14 +1,23 @@
 package com.example.MyPlayPal.controller;
 
-import com.example.MyPlayPal.service.PaymentService;
+import com.example.MyPlayPal.dto.BookingDto;
+import com.example.MyPlayPal.dto.CourtDto;
+import com.example.MyPlayPal.dto.CourtSlotDto;
+import com.example.MyPlayPal.model.Booking;
+import com.example.MyPlayPal.model.PaymentTransaction;
+import com.example.MyPlayPal.model.User;
+import com.example.MyPlayPal.repository.PaymentTransactionRepository;
+import com.example.MyPlayPal.service.*;
 import com.razorpay.Order;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,10 +26,28 @@ import java.util.Map;
 public class PaymentController {
 
     private final PaymentService paymentService;
+    private final UserService userService;
+    private final SportService sportService;
+    private final UserSportService userSportService;
+    private final BookingService bookingService;
+    private final CourtService courtService;
+    private final CourtSlotService courtSlotService;
 
     @Autowired
-    public PaymentController(PaymentService paymentService) {
+    private PaymentTransactionRepository paymentTransactionRepository;
+
+    @Autowired
+    public PaymentController(PaymentService paymentService, UserService userService, SportService sportService,
+                             UserSportService userSportService, BookingService bookingService, CourtService courtService,
+                             CourtSlotService courtSlotService) {
+
         this.paymentService = paymentService;
+        this.userService = userService;
+        this.sportService = sportService;
+        this.userSportService = userSportService;
+        this.bookingService = bookingService;
+        this.courtService = courtService;
+        this.courtSlotService = courtSlotService;
     }
 
     // ✅ Create Razorpay Order (called via JS fetch)
@@ -116,19 +143,81 @@ public class PaymentController {
 
     // ✅ Payment Success Page
     // ✅ Payment Success Page — confirm booking here
-    @GetMapping("/success")
-    public String paymentSuccess(
-            @RequestParam Long bookingId,
-            @RequestParam String paymentId,
-            Model model) {
+//    @GetMapping("/success")
+//    public String paymentSuccess(
+//            @RequestParam Long bookingId,
+//            @RequestParam String paymentId,
+//            Model model) {
+//
+//        BookingDto booking = bookingService.getById(bookingId);
+//        CourtSlotDto courtSlot = courtSlotService.getCourtSlotById(booking.getSlotId());
+//
+//        // Confirm the booking (mark as PAID/CONFIRMED)
+//        paymentService.markBookingAsPaid(bookingId, paymentId);
+//
+//        model.addAttribute("bookingId", bookingId);
+//        model.addAttribute("paymentId", paymentId);
+//
+//        return "payment_success";
+//    }
 
-        // Confirm the booking (mark as PAID/CONFIRMED)
+    @GetMapping("/success")
+    @Transactional
+    public String paymentSuccess(@RequestParam String paymentId,
+                                 Model model,
+                                 Principal principal) {
+
+        // 1️⃣ Fetch PaymentTransaction using Razorpay payment ID
+        PaymentTransaction txn = paymentTransactionRepository
+                .findByReferenceId(paymentId)
+                .orElseThrow(() -> new RuntimeException("Payment transaction not found for paymentId: " + paymentId));
+
+        Booking bookingEntity = txn.getBooking();  // fetch Booking object
+        if (bookingEntity == null || bookingEntity.getId() == null) {
+            throw new RuntimeException("Booking missing in payment transaction for paymentId: " + paymentId);
+        }
+        Long bookingId = bookingEntity.getId();
+        if (bookingId == null) {
+            throw new RuntimeException("Booking ID is missing in payment transaction for paymentId: " + paymentId);
+        }
+
+        // 2️⃣ Confirm the booking (mark as PAID/CONFIRMED)
         paymentService.markBookingAsPaid(bookingId, paymentId);
 
+        // 3️⃣ Fetch booking details
+        BookingDto booking = bookingService.getById(bookingId);
+        if (booking == null || booking.getSlotId() == null) {
+            throw new RuntimeException("Invalid booking or missing slotId for bookingId: " + bookingId);
+        }
+
+        // 4️⃣ Fetch court slot
+        CourtSlotDto courtSlot = courtSlotService.getCourtSlotById(booking.getSlotId());
+        if (courtSlot == null || courtSlot.getCourtId() == null) {
+            throw new RuntimeException("Invalid court slot or missing courtId for slotId: " + booking.getSlotId());
+        }
+
+        // 5️⃣ Fetch court
+        CourtDto court = courtService.getById(courtSlot.getCourtId());
+        if (court == null || court.getSportId() == null) {
+            throw new RuntimeException("Invalid court or missing sportId for courtId: " + courtSlot.getCourtId());
+        }
+
+        Long sportId = court.getSportId();
+
+        // 6️⃣ Get current logged-in user
+        Long userId = userService.getUserIdByUsername(principal.getName());
+
+        // 7️⃣ Add entry in user_sport table (if not exists)
+        userSportService.addUserSport(userId, sportId);
+
+        // 8️⃣ Add attributes for frontend
         model.addAttribute("bookingId", bookingId);
         model.addAttribute("paymentId", paymentId);
+        model.addAttribute("sportId", sportId);
 
         return "payment_success";
     }
+
+
 
 }

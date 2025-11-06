@@ -126,12 +126,26 @@ public class BookingServiceImpl implements BookingService {
 
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true)  // ensures lazy-loaded associations are available
     public BookingDto getById(Long id) {
         Booking booking = bookingRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found with id: " + id));
-        return toDto(booking);
+
+        // Map entity to DTO
+        BookingDto dto = new BookingDto();
+        dto.setId(booking.getId());
+        dto.setUserId(booking.getUser() != null ? booking.getUser().getId() : null);
+
+        // ✅ Safely get slotId from lazy-loaded slot
+        dto.setSlotId(booking.getSlot() != null ? booking.getSlot().getId() : null);
+
+        dto.setBookingDate(booking.getBookingDate());
+        dto.setStatus(booking.getStatus() != null ? booking.getStatus().name() : null);
+        dto.setTotalAmount(booking.getTotalAmount());
+
+        return dto;
     }
+
 
     @Override
     @Transactional(readOnly = true)
