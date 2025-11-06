@@ -55,10 +55,12 @@ public class CourtSlotServiceImpl implements CourtSlotService {
         return CourtSlotDto.builder()
                 .id(saved.getId())
                 .courtId(court.getId())
+                .courtname(court.getCourtname()) // ✅ added line
                 .startTime(saved.getStartTime())
                 .endTime(saved.getEndTime())
                 .status(saved.getStatus().name())
                 .build();
+
     }
 
     @Override
@@ -68,10 +70,12 @@ public class CourtSlotServiceImpl implements CourtSlotService {
                 .map(s -> CourtSlotDto.builder()
                         .id(s.getId())
                         .courtId(s.getCourt().getId())
+                        .courtname(s.getCourt().getCourtname()) // ✅ added
                         .startTime(s.getStartTime())
                         .endTime(s.getEndTime())
                         .status(s.getStatus().name())
                         .build())
+
                 .collect(Collectors.toList());
     }
 
@@ -131,12 +135,14 @@ public class CourtSlotServiceImpl implements CourtSlotService {
         // Convert to DTOs
         return slots.stream()
                 .map(slot -> CourtSlotDto.builder()
-                        .id(slot.getId())
-                        .courtId(slot.getCourt().getId())
-                        .startTime(slot.getStartTime())
-                        .endTime(slot.getEndTime())
-                        .status(slot.getStatus().name())
-                        .build())
+                .id(slot.getId())
+                .courtId(slot.getCourt().getId())
+                .courtname(slot.getCourt().getCourtname()) // ✅ added
+                .startTime(slot.getStartTime())
+                .endTime(slot.getEndTime())
+                .status(slot.getStatus().name())
+                .build())
+
                 .collect(Collectors.toList());
     }
     @Override

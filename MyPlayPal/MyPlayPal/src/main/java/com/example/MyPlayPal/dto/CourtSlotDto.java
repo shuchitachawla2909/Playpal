@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 public class CourtSlotDto {
     private Long id;
     private Long courtId;
+    private String courtname;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private String status;

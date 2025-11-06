@@ -4,9 +4,6 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalTime;
-
 
 @Data
 @Builder
@@ -14,29 +11,22 @@ import java.time.LocalTime;
 @AllArgsConstructor
 public class CreateBookingRequest {
 
-    // --- Authenticated User ---
-    // Derived automatically from the logged-in Principal (not from frontend form)
-    // So this will not be included in the booking form, but we keep the field here
-    // for internal mapping if needed in the controller.
+    // ✅ Automatically set from Principal in controller
     private Long userId;
 
-    // --- Court and Slot Information ---
+    // ✅ Court ID for reference
     @NotNull(message = "Court ID is required")
     private Long courtId;
 
-    @NotNull(message = "Booking date is required")
-    private LocalDate bookingDate;
+    // ✅ Slot ID selected by user (single slot)
+    @NotNull(message = "Slot ID is required")
+    private Long slotId;
 
-    @NotNull(message = "Start time is required")
-    private LocalTime startTime;
-
-    @NotNull(message = "End time is required")
-    private LocalTime endTime;
-
-    // --- Payment Information ---
+    // ✅ Total amount for this booking (can be computed in backend too)
     @NotNull(message = "Total amount is required")
     @DecimalMin(value = "0.0", inclusive = false, message = "Total amount must be greater than 0")
     private BigDecimal totalAmount;
 
+    // optional: if you generate payment reference later
     private String paymentRefId;
 }

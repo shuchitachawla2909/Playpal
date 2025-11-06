@@ -84,29 +84,37 @@
 <section class="booking-section">
     <div class="container booking-container">
         <div class="booking-steps">
-            <div class="step active" data-step="1"><i class="fas fa-clock"></i> Select Slot</div>
+            <div class="step active" data-step="1">
+                <i class="fas fa-clock"></i> Select Slot
+            </div>
         </div>
 
-        <!-- STEP 1: SLOT SELECTION ONLY -->
+        <!-- STEP 1: SLOT SELECTION -->
         <div id="view-slot-selection">
             <h2 class="section-subtitle" style="text-align: left;">Choose Date and Time</h2>
+
             <div class="booking-details-box">
                 <div class="form-group">
                     <label for="booking-date">Select Date:</label>
                     <input type="date" id="booking-date" class="form-control" required>
+                    <!-- ✅ Keep hidden input for courtId -->
                     <input type="hidden" id="court-id" th:value="${court.id}">
                 </div>
 
                 <h3>Available Slots (Hourly):</h3>
+
+                <!-- ✅ JS will dynamically load buttons here -->
                 <div class="slot-selection-grid" id="slot-grid">
                     <p style="text-align:center; width:100%;">Select a date to view available slots.</p>
                 </div>
 
+                <!-- ✅ Total price will update automatically in JS -->
                 <div style="text-align: right; margin-top: 30px;">
                     <p style="font-size: 1.2rem; font-weight: bold; margin-bottom: 15px;">
-                        Total Price: <span id="total-price" th:text="'₹' + ${court.hourlyRate}">₹200</span>
+                        Total Price: <span id="total-price">₹0</span>
                     </p>
-                    <!-- ✅ Proceed Button Now Redirects to Payment Page -->
+
+                    <!-- ✅ Proceed button triggers payment flow -->
                     <button type="button" class="cta-btn" id="proceed-to-payment">
                         Proceed to Payment <i class="fas fa-arrow-right"></i>
                     </button>
@@ -115,6 +123,7 @@
         </div>
     </div>
 </section>
+
 
 <!-- ✅ FOOTER -->
 <footer class="footer">
@@ -141,10 +150,11 @@
 
     let bookingState = {
         selectedDate: null,
-        selectedSlots: [],
+        selectedSlotId: null,
         totalPrice: 0
     };
 
+    // ✅ Load available slots by courtId + date
     async function loadAvailableSlots(date) {
         const slotGrid = document.getElementById('slot-grid');
         slotGrid.innerHTML = `<p>Loading available slots...</p>`;
@@ -161,28 +171,30 @@
             }
 
             slotGrid.innerHTML = '';
+
             slots.forEach(slot => {
+                if (slot.status !== 'AVAILABLE') return;
+
                 const start = new Date(slot.startTime);
                 const end = new Date(slot.endTime);
-                if (slot.status !== 'AVAILABLE' || isNaN(start) || isNaN(end)) return;
 
                 const btn = document.createElement('button');
                 btn.className = 'time-slot-btn';
-                btn.dataset.slot = slot.startTime;
-                btn.dataset.price = DTO.hourlyRate;
+                btn.dataset.slotId = slot.id; // ✅ use slotId instead of startTime
                 btn.textContent = `${start.getHours().toString().padStart(2, '0')}:00 - ${end.getHours().toString().padStart(2, '0')}:00`;
 
-                btn.addEventListener('click', function() {
-                    this.classList.toggle('selected');
-                    const slotTime = this.dataset.slot;
+                // ✅ Allow only ONE selection
+                btn.addEventListener('click', function () {
+                    // Clear all selections
+                    document.querySelectorAll('.time-slot-btn').forEach(b => b.classList.remove('selected'));
 
-                    if (this.classList.contains('selected')) {
-                        bookingState.selectedSlots.push(slotTime);
-                    } else {
-                        bookingState.selectedSlots = bookingState.selectedSlots.filter(s => s !== slotTime);
-                    }
+                    // Mark current one as selected
+                    this.classList.add('selected');
 
-                    bookingState.totalPrice = bookingState.selectedSlots.length * DTO.hourlyRate;
+                    // Store selected slot ID
+                    bookingState.selectedSlotId = this.dataset.slotId;
+                    bookingState.totalPrice = DTO.hourlyRate;
+
                     document.getElementById('total-price').textContent = '₹' + bookingState.totalPrice;
                 });
 
@@ -194,41 +206,32 @@
         }
     }
 
-    document.getElementById('booking-date').addEventListener('change', function() {
+    // ✅ Date change handler
+    document.getElementById('booking-date').addEventListener('change', function () {
         bookingState.selectedDate = this.value;
         loadAvailableSlots(this.value);
     });
 
-    document.getElementById('proceed-to-payment').addEventListener('click', async function() {
+    // ✅ Proceed to payment (single slot)
+    document.getElementById('proceed-to-payment').addEventListener('click', async function () {
         if (!bookingState.selectedDate) {
             alert('Please select a booking date.');
             return;
         }
-        if (bookingState.selectedSlots.length === 0) {
-            alert('Please select at least one slot.');
+        if (!bookingState.selectedSlotId) {
+            alert('Please select a slot.');
             return;
         }
 
-        // ✅ FIXED Payload
-        function extractLocalTime(isoString) {
-          const date = new Date(isoString);
-          return date.toTimeString().split(' ')[0]; // "09:00:00"
-        }
-
         const payload = {
-          courtId: DTO.courtId,
-          bookingDate: bookingState.selectedDate,
-          startTime: extractLocalTime(bookingState.selectedSlots[0]),
-          endTime: extractLocalTime(bookingState.selectedSlots[bookingState.selectedSlots.length - 1]),
-          totalAmount: bookingState.selectedSlots.length * DTO.hourlyRate
+            courtId: DTO.courtId,
+            slotId: bookingState.selectedSlotId,   // ✅ send slotId directly
+            bookingDate: bookingState.selectedDate,
+            totalAmount: DTO.hourlyRate
         };
 
-
-
-
-
         try {
-            // ✅ Step 1: Create booking with status=PENDING
+            // ✅ Step 1: Create booking with selected slotId
             const resp = await fetch('/api/bookings/create', {
                 method: 'POST',
                 headers: {
@@ -239,14 +242,13 @@
             });
 
             if (!resp.ok) throw new Error("Booking creation failed");
-            const booking = await resp.json();   // should return bookingId
+            const booking = await resp.json();
             const bookingId = booking.id;
             bookingState.bookingId = bookingId;
 
             // ✅ Step 2: Redirect to payment page
             const amount = bookingState.totalPrice;
             const selectedDate = bookingState.selectedDate;
-            const slots = bookingState.selectedSlots.join(', ');
             const venueName = DTO.venueName;
             const courtName = DTO.courtName;
 
@@ -254,7 +256,6 @@
                 `/api/payment/page?amount=${amount}` +
                 `&bookingId=${bookingId}` +
                 `&date=${encodeURIComponent(selectedDate)}` +
-                `&slots=${encodeURIComponent(slots)}` +
                 `&venueName=${encodeURIComponent(venueName)}` +
                 `&courtName=${encodeURIComponent(courtName)}`;
         } catch (err) {
@@ -263,7 +264,7 @@
         }
     });
 
-
+    // ✅ Auto-load today's slots
     document.addEventListener('DOMContentLoaded', async () => {
         const dateInput = document.getElementById('booking-date');
         const today = new Date().toISOString().split('T')[0];
@@ -272,7 +273,6 @@
         await loadAvailableSlots(today);
     });
 </script>
-
 
 </body>
 </html>

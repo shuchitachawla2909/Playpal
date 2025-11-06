@@ -53,12 +53,8 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + req.getUserId()));
 
         // --- 2. Validate and Lock Slot ---
-        LocalDateTime startDateTime = LocalDateTime.of(req.getBookingDate(), req.getStartTime());
-        LocalDateTime endDateTime = LocalDateTime.of(req.getBookingDate(), req.getEndTime());
-
-        CourtSlot slot = slotRepo.findByCourtIdAndStartTimeAndEndTime(
-                        req.getCourtId(), startDateTime, endDateTime)
-                .orElseThrow(() -> new ResourceNotFoundException("Slot not found for the specified time and court."));
+        CourtSlot slot = slotRepo.findById(req.getSlotId())
+                .orElseThrow(() -> new ResourceNotFoundException("Slot not found with id: " + req.getSlotId()));
 
         if (slot.getStatus() != CourtSlot.SlotStatus.AVAILABLE) {
             throw new IllegalStateException("Slot is already booked or unavailable.");
@@ -98,7 +94,7 @@ public class BookingServiceImpl implements BookingService {
                 .build();
         paymentRepo.save(transaction);
 
-        // --- 7. Optional email ---
+        // --- 7. Send Booking Confirmation Email ---
         try {
             String htmlTemplate = new String(
                     Objects.requireNonNull(
@@ -109,11 +105,10 @@ public class BookingServiceImpl implements BookingService {
             htmlTemplate = htmlTemplate
                     .replace("{{username}}", user.getUsername())
                     .replace("{{courtName}}", slot.getCourt().getCourtname())
-                    .replace("{{bookingDate}}", req.getBookingDate().toString()) // LocalDate ✅
-                    .replace("{{startTime}}", req.getStartTime().toString())     // LocalTime ✅
-                    .replace("{{endTime}}", req.getEndTime().toString())         // LocalTime ✅
+                    .replace("{{bookingDate}}", slot.getStartTime().toLocalDate().toString())
+                    .replace("{{startTime}}", slot.getStartTime().toLocalTime().toString())
+                    .replace("{{endTime}}", slot.getEndTime().toLocalTime().toString())
                     .replace("{{amount}}", totalAmount.toString());
-
 
             emailService.sendBookingConfirmation(
                     user.getEmail(),
@@ -127,6 +122,7 @@ public class BookingServiceImpl implements BookingService {
         // --- 8. Return DTO ---
         return toDto(savedBooking);
     }
+
 
 
     @Override

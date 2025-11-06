@@ -1,8 +1,11 @@
 package com.example.MyPlayPal.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "court_slots", uniqueConstraints = {
@@ -30,6 +33,10 @@ public class CourtSlot {
 
     @Enumerated(EnumType.STRING)
     private SlotStatus status = SlotStatus.AVAILABLE;
+
+    @OneToMany(mappedBy = "slot", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<Booking> bookings = new ArrayList<>();
 
     public enum SlotStatus {
         AVAILABLE, RESERVED, BOOKED, MAINTENANCE
